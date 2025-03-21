@@ -23,6 +23,7 @@ This template relies on a carefully orchestrated system of directories and files
 
 In Cursor, these three files reside in <code>@cursor/rules</code>.  
 In CLINE, these three files reside in <code>clinerules/</code>.
+For Windsurf just add the files in <code>clinerules/</code>.
 
 ## Directory Structure
 
