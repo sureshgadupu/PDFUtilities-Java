@@ -2,6 +2,36 @@
 
 This template provides a robust and adaptable framework of rules designed to enhance the performance of AI coding assistants like Cursor and CLINE. Rooted in established software engineering principles and documentation best practices, it ensures consistent and effective AI-assisted development across different platforms.
 
+## Directory Structure
+
+Below is the top-level directory structure from <em>clinerules/directory-structure</em>. This structure is central to how the project is organized:
+
+```mermaid
+flowchart TD
+    Root[Project Root]
+    Root --> Docs[docs/]
+    Root --> Tasks[tasks/]
+    Root --> Cursor[.cursor/rules/]
+    Root --> CLINE[.clinerules]    
+    Root --> SourceCode[src/]
+    Root --> Test[test/]
+    Root --> Utils[utils/]
+    Root --> Config[config/]
+    Root --> Data[data/]
+    Root --> Other[Other Directories]
+```
+
+• <code>.cursor/rules/</code> – Custom rules for Cursor  
+• <code>.clinerules/</code> – Custom rules for CLINE  
+• <code>docs/</code> – Project documentation, architecture, and reference materials  
+• <code>tasks/</code> – Task plans, active context, RFCs, and general to-do items  
+• <code>src/</code> – Main source code  
+• <code>test/</code> – Testing suite  
+• <code>utils/</code> – Utility scripts or libraries  
+• <code>config/</code> – Configuration files  
+• <code>data/</code> – Data resources  
+• (and potentially more directories as the project grows)
+
 ## Core Principles
 
 This template is built upon two fundamental pillars:
@@ -11,6 +41,34 @@ This template is built upon two fundamental pillars:
 **b) Software Development Documentation:**  Leveraging comprehensive documentation to provide context, guide development, and serve as persistent memory for AI coding assistants.
 
 By combining these principles, the Rules Template aims to provide a structured and reliable approach to AI-assisted coding.
+
+# Rule Files:
+
+This template relies on a carefully orchestrated system of directories and files for Cursor, Windsurf, CLINE and RooCode Within each environment, there are exactly three crucial files that shape how the AI operates:
+
+1. <strong>rules</strong> (rules.mdc) –  
+   Houses the comprehensive set of software engineering best practices, AI coding guidelines, and systematic workflows. These rules ensure the AI agent manages tasks, planning, and code implementations rigorously.
+
+2. <strong>memory</strong> (memory.mdc) –  
+   Maintains a persistent memory of the project context using structured documentation. It includes references to project requirements, architecture, tasks, and a chain-of-thought methodology. This lets the AI preserve context across sessions and modes while enforcing a software-engineering lifecycle approach.
+
+3. <strong>directory-structure</strong> (directory-structure.mdc) –  
+   Dictates the top-level folder layout and how different files interrelate. This is where we define the hierarchy of docs, tasks, and source code directories, ensuring consistent organization across the entire project.
+
+In <strong>Cursor </strong>, these three files reside in <code>.cursor/rules</code>:
+
+<code>.cursor/rules/rules.mdc</code> 
+ <code>.cursor/rules/memory.mdc</code> 
+ <code>.cursor/rules/directory-structure.mdc</code>
+  
+In <strong>CLINE</strong>, these three files reside in <code>.clinerules/</code>:
+
+ <code>.clinerules/rules</code> 
+ <code>.clinerules/memory</code>  
+ <code>.clinerules/directory-structure</code> 
+ 
+For <strong>Windsurf</strong> just add the files in <code>.windsurfrules</code>.
+
 
 ## Key Files and Concepts
 
@@ -51,49 +109,54 @@ The `memory` files (located in `clinerules/memory` and `cursor/rules/memory.mdc`
 **Memory Files Structure:**
 
 The memory system is structured into Core Files (required) and Context Files (optional), forming a hierarchical knowledge base for the project.
-
 ```mermaid
 flowchart TD
-    PB@ [product_requirement_docs.md ] --> PC@ [technical.md ]
-    PB --> SP[ @docs/architecture.md ]
+    PRD[product_requirement_docs.md] --> TECH[technical.md]
+    PRD --> ARCH[docs/architecture.md]
 
-    SP --> TC[tasks/tasks_plan.md ]
-    PC --> TC
-    PB --> TC
+    ARCH --> TASKS[tasks/tasks_plan.md]
+    TECH --> TASKS
+    PRD --> TASKS
     
-    TC --> AC[tasks/active_context.md ]
+    TASKS --> ACTIVE[tasks/active_context.md]
 
-    AC --> ER[.cursor/rules/error-documentation.mdc]
-    AC --> LL[.cursor/rules/lessons-learned.mdc ]
+    ACTIVE --> ERROR[.cursor/rules/error-documentation.mdc]
+    ACTIVE --> LEARN[.cursor/rules/lessons-learned.mdc]
     
-    subgraph LIT[ docs/literature ]
-        L1[...]
-        L2[...]
+    subgraph LIT[docs/literature]
+        L1[Research 1]
+        L2[Research 2]
     end
     
-    subgraph RFC[ tasks/rfc/ ]
-        R1[...]
-        R2[...]
+    subgraph RFC[tasks/rfc]
+        R1[RFC 1]
+        R2[RFC 2]
     end
     
-    PC --o LIT
-    TC --o RFC
+    TECH --o LIT
+    TASKS --o RFC
     
-    LIT ~~~ PC
-    RFC ~~~ TC
+    LIT --- TECH
+    RFC --- TASKS
 ```
 
 **Core Files (Required):**
 
-1.  **`product_requirement_docs.md` (docs/product_requirement_docs.md):** Product Requirement Document (PRD) or Standard Operating Procedure (SOP).
+  1.  **`product_requirement_docs.md` (docs/product_requirement_docs.md):** Product Requirement Document (PRD) or Standard Operating Procedure (SOP).
     - Defines the project's purpose, problems it solves, core requirements, and goals.
     - Serves as the foundational document and source of truth for project scope.
+
+    Product Requirement Documents (PRDs) are foundational blueprints in software development, defining what a product should achieve and guiding teams to align on scope, features, and objectives [1, 4]. PRDs serve multiple purposes: defining product scope and goals, aligning stakeholders across teams, and mitigating risks early in development [12, 14]. They offer significant utility by providing clarity on product vision, prioritizing features, ensuring quality, and enabling traceability throughout the development lifecycle [6, 15]. While traditionally detailed in Waterfall, PRDs are adapted for Agile methodologies as leaner, iterative documents [7, 9]. Related documents include Market Requirements Documents (MRDs) and Functional Requirements Documents (FRDs) [1, 3].
 
 2.  **`architecture.md` (docs/architecture.md):** System Architecture Document.
     - Outlines the system's design, component relationships, and dependencies.
 
+    Software architecture documentation is a blueprint that captures design decisions, component interactions, and non-functional requirements [1, 2]. It serves to preserve design rationale, support scalability, and facilitate decision-making [1, 6]. Key benefits include improved knowledge sharing, risk mitigation, and stakeholder communication [2, 7]. Types of architecture documentation vary, including decision-centric ADRs, structural C4 model diagrams, and behavioral sequence diagrams [7, 8]. Frameworks like arc42 provide structured templates for comprehensive architecture documentation [8].
+
 3.  **`technical.md` (docs/technical.md):** Technical Specifications Document.
     - Details the development environment, technologies used, key technical decisions, design patterns, and technical constraints.
+
+    Technical Specifications Documents (TSDs) serve as blueprints translating business needs into technical guidelines [1, 9]. They clarify project vision, bridge stakeholder communication, and mitigate risks [5, 12]. TSDs are highly useful for engineers as step-by-step guides, for teams as alignment tools, and for projects in ensuring accountability [1, 5]. Technical documentation broadly includes process documentation like TSDs and SRS, product documentation (user manuals, API docs), and specialized specs for IT or Agile projects [6, 13]. A robust TSD enhances project clarity and reduces failure risks associated with unclear requirements [5].
 
 4.  **`tasks_plan.md` (tasks/tasks_plan.md):** Task Backlog and Project Progress Tracker.
     - Provides an in-depth list of tasks, tracks project progress, current status, and known issues.
@@ -114,6 +177,8 @@ flowchart TD
 
 2.  **`tasks/rfc/`:** Request for Comments (RFC) Directory.
     - Stores RFCs for individual tasks in LaTeX format (`tasks/rfc/*.tex`), providing detailed specifications and discussions for specific functionalities.
+
+    Request for Comments (RFCs) are structured proposals for technical decision-making and standardization [1, 2]. They document technical specifications, solicit feedback, and preserve institutional knowledge [4, 9]. RFCs enhance utility by reducing silos, mitigating risks, and ensuring decision traceability [5, 9]. Types range from standards-track protocol specifications to organizational RFCs for team-specific designs [5, 11]. Modern RFCs often include problem statements, proposed solutions, alternatives, rollout plans, and security impact assessments [9, 10]. While RFCs improve decision quality, they also pose challenges like time overhead and consensus bottlenecks [6, 11].
 
 **Additional Context:**
 
@@ -155,3 +220,21 @@ This structure ensures that different aspects of the project, such as code, test
 9.  **Potential for Auto-Evolving Rules:**  Opens up possibilities for AI-driven rule evolution and refinement, allowing the template to adapt and improve over time.
 
 By adhering to the principles and structure outlined in this Rules Template, development teams can leverage AI coding assistants more effectively, ensuring consistency, quality, and maintainability across their projects.
+
+## References
+
+[1]  "Product Requirement Document (PRD) in software development: purpose, utility, and types of documentation" 
+[2]  "Request for Comments (RFC) in software development: purpose, utility, and types of documentation" 
+[3]  "Software Architecture Document: purpose, utility, and types of architecture documentation" 
+[4]  "Technical Specifications Document in software development: purpose, utility, and types of technical documentation" 
+[5]  "Software Architecture Document: purpose, utility, and types of architecture documentation" 
+[6]  "Request for Comments (RFC) serve as structured proposals for technical decision-making" 
+[7]  "Software architecture documentation is a critical blueprint for software systems" 
+[8]  "arc42 template and links documentation to non-functional requirements and team collaboration" 
+[9]  "PRDs in Agile, where they might be more flexible, using user stories instead of rigid specs" 
+[10]  "Tools like Aha! and Figma enable collaborative, template-driven PRDs" 
+[11]  "RFCs improve decision quality, they introduce time overhead" 
+[12]  "PRD benefits like clarifying vision, defining target market" 
+[13]  "SMART goals in PRD, which is a good detail for key components" 
+[14]  "PRD details features and functionality for a product release" 
+[15]  "PRD vs. MRD and BRD (Business Requirements Document)" 
