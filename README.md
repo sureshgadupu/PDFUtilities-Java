@@ -226,6 +226,9 @@ This structure ensures that different aspects of the project, such as code, test
 
 By adhering to the principles and structure outlined in this Rules Template, development teams can leverage AI coding assistants more effectively, ensuring consistency, quality, and maintainability across their projects.
 
+## To-Do:
+- [ ] 1: add roo code rules format
+- [ ] 2: example content of each file
 
 ## Additional Notes:
 
