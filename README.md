@@ -229,6 +229,7 @@ By adhering to the principles and structure outlined in this Rules Template, dev
 ## To-Do:
 - [ ] 1: add roo code rules format
 - [ ] 2: example content of each file
+- [ ] 3: FAQs
 
 ## Additional Notes:
 
