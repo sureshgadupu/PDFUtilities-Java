@@ -33,6 +33,10 @@ flowchart TD
 • (and potentially more directories as the project grows)
 
 ## Core Principles
+The main aim of this template is to have rules that are fundamentally backed by software engineering concepts and have a documentation that is usually followed in large software teams. 
+
+The same documentation will form the context for the AI Coding. 
+Now, these same rules have been written for Cursor, CLINE and Windsurf custom rules format. Thus, having a uniform rule based across these systems. And as the context is saved as documentation in the files, so it is platform agnostic.
 
 This template is built upon two fundamental pillars:
 
@@ -41,20 +45,20 @@ This template is built upon two fundamental pillars:
 **b) Software Development Documentation:**  Leveraging comprehensive documentation to provide context, guide development, and serve as persistent memory for AI coding assistants.
 
 By combining these principles, the Rules Template aims to provide a structured and reliable approach to AI-assisted coding.
+And based on the popular knowledge and research in these two fileds, we came up with this template.
 
-# Rule Files:
+# Three Files:
 
 This template relies on a carefully orchestrated system of directories and files for Cursor, Windsurf, CLINE and RooCode Within each environment, there are exactly three crucial files that shape how the AI operates:
 
 1. <strong>rules</strong> (rules.mdc) –  
-   Houses the comprehensive set of software engineering best practices, AI coding guidelines, and systematic workflows. These rules ensure the AI agent manages tasks, planning, and code implementations rigorously.
+   This includes a systematic workflow for a task. Includes popular and effective rules from many different template libraries and guitar github repositories. In addition, it includes processes for chain of thinking, separation of concerns, modular design. 
 
 2. <strong>memory</strong> (memory.mdc) –  
-   Maintains a persistent memory of the project context using structured documentation. It includes references to project requirements, architecture, tasks, and a chain-of-thought methodology. This lets the AI preserve context across sessions and modes while enforcing a software-engineering lifecycle approach.
-
+   Next comes the recommended documentation. Software documentation starts with PRDs Recording the requirements, architecture plan, technical plan, and the RFCs for individual functionality or group of functionalities. 
+So our documentation that also served as a context is very relevant for an AI cod as it has mostly the knowledge and the skills to work on and with these proper software documentations. 
 3. <strong>directory-structure</strong> (directory-structure.mdc) –  
-   Dictates the top-level folder layout and how different files interrelate. This is where we define the hierarchy of docs, tasks, and source code directories, ensuring consistent organization across the entire project.
-
+   This is a very simple file stating the directory structure so that all parts of a project development is covered like : (a) code, (b) test, (c) configurations, (d) data, (e) project rules, etc separately and in modular approach.
 In <strong>Cursor </strong>, these three files reside in <code>.cursor/rules</code>:
 
 <code>.cursor/rules/rules.mdc</code> 
@@ -81,30 +85,31 @@ The `rules` files (located in `clinerules/rules` and `cursor/rules/rules.mdc`) d
 **Five-Phased Workflow:**
 
 **(i) Requirements and Clarifications:**
-   - Emphasizes the importance of clearly defining requirements and seeking thorough clarifications at the outset.
-   - Aims to eliminate ambiguity, ensure precise understanding, and anticipate potential challenges early in the development cycle.
+
+   it starts with making the requirements very clear and asking as much clarification as possible in the beginning. This is always the first task software development. Where all the requirements are made as precise and verbose as possible so as to save Time and effort later in redoing. Plus anticipate Major bottlenecks ahead of any work. 
 
 **(ii) Exhaustive Searching and Optimal Plan:**
-   - Advocates for exploring a wide range of potential solutions and rigorously evaluating their merits.
-   - Focuses on identifying the optimal approach, potentially through a combination of different strategies, and justifying the chosen solution with sound reasoning.
+  exhaustive searching and optimal plan: search all possible directions in which the problem can be solved. And find out the optimal solution, which can be also a amalgamation of many different approaches. And reason rigourously, why the chosen approach is optimal.
 
 **(iii) User Validation:**
-   - Highlights the necessity of validating the proposed plan with the user, ensuring alignment and agreement on assumptions and design decisions.
-   - Promotes transparency and collaborative decision-making before implementation.
+
+  validate the developed optimal plan with the user clearly stating the assumptions and design decisions made, and the reasons for them.
 
 **(iv) Implementation:**
-   - Recommends an iterative implementation approach, focusing on building and thoroughly testing one functionality at a time.
-   - Emphasizes incremental development to enhance system robustness and manage complexity effectively.
+   
+   implement proposed plan in an iterative way, taking one functionality at a time, testing it exhaustively with all the cases. And then building the next functionality. In this way to make the system, robust and incremental. 
 
 **(v) Further Suggestions:**
-   - Encourages proactive identification of potential optimizations, additional features, or enhancements for security and functionality post-implementation.
-   - Promotes continuous improvement and forward-thinking in the development process.
+   
+   after implementation, suggesting possible optimisation to be done or possible, additional features for security or functionality to be added. 
 
-This five-phased workflow is designed to be adaptable and applicable at various levels of development, from entire projects to individual functionalities, ensuring a consistent and structured approach throughout.
+So this five phased approach, is for a software life-cycle. But this can be applied for any grnuarlity, like entire project or a single functionality. For example, very clearly recording the requirement for the functionality and asking clarifying questions is as good for a single small functionality as for a program. 
+So this five phased, solution strategy workflow is to be followed at every part of development.
 
 ### 2. Memory: Persistent Project Documentation
 
-The `memory` files (located in `clinerules/memory` and `cursor/rules/memory.mdc`) establish a robust documentation system that serves as persistent memory for the project and the AI assistant. This system is inspired by standard software development documentation practices, including PRDs, architecture plans, technical specifications, and RFCs.
+The `memory` files (located in `clinerules/memory` and `cursor/rules/memory.mdc`) establish a robust documentation system that serves as persistent memory for the project and the AI assistant. This system is inspired by standard software development documentation practices, including PRDs, architecture plans, technical specifications, and RFCs. So, keeping these software life-cycle documentation is as focus. We develop our memory bank to have these document in sync to provide the complete context for the project. We have few additional files for current context and task plan in tasks/.
+
 
 **Memory Files Structure:**
 
@@ -146,18 +151,18 @@ flowchart TD
     - Defines the project's purpose, problems it solves, core requirements, and goals.
     - Serves as the foundational document and source of truth for project scope.
 
-    Product Requirement Documents (PRDs) are foundational blueprints in software development, defining what a product should achieve and guiding teams to align on scope, features, and objectives [1, 4]. PRDs serve multiple purposes: defining product scope and goals, aligning stakeholders across teams, and mitigating risks early in development [12, 14]. They offer significant utility by providing clarity on product vision, prioritizing features, ensuring quality, and enabling traceability throughout the development lifecycle [6, 15]. While traditionally detailed in Waterfall, PRDs are adapted for Agile methodologies as leaner, iterative documents [7, 9]. Related documents include Market Requirements Documents (MRDs) and Functional Requirements Documents (FRDs) [1, 3].
-
+    Product Requirement Documents (PRDs) are foundational blueprints in software development, defining what a product should achieve and guiding teams to align on scope, features, and objectives . 
+    
+    
 2.  **`architecture.md` (docs/architecture.md):** System Architecture Document.
     - Outlines the system's design, component relationships, and dependencies.
 
-    Software architecture documentation is a blueprint that captures design decisions, component interactions, and non-functional requirements [1, 2]. It serves to preserve design rationale, support scalability, and facilitate decision-making [1, 6]. Key benefits include improved knowledge sharing, risk mitigation, and stakeholder communication [2, 7]. Types of architecture documentation vary, including decision-centric ADRs, structural C4 model diagrams, and behavioral sequence diagrams [7, 8]. Frameworks like arc42 provide structured templates for comprehensive architecture documentation [8].
-
+    Software architecture documentation is a blueprint that captures design decisions, component interactions, and non-functional requirements. 
+    
 3.  **`technical.md` (docs/technical.md):** Technical Specifications Document.
     - Details the development environment, technologies used, key technical decisions, design patterns, and technical constraints.
 
-    Technical Specifications Documents (TSDs) serve as blueprints translating business needs into technical guidelines [1, 9]. They clarify project vision, bridge stakeholder communication, and mitigate risks [5, 12]. TSDs are highly useful for engineers as step-by-step guides, for teams as alignment tools, and for projects in ensuring accountability [1, 5]. Technical documentation broadly includes process documentation like TSDs and SRS, product documentation (user manuals, API docs), and specialized specs for IT or Agile projects [6, 13]. A robust TSD enhances project clarity and reduces failure risks associated with unclear requirements [5].
-
+    
 4.  **`tasks_plan.md` (tasks/tasks_plan.md):** Task Backlog and Project Progress Tracker.
     - Provides an in-depth list of tasks, tracks project progress, current status, and known issues.
 
@@ -172,21 +177,21 @@ flowchart TD
 
 **Context Files (Optional):**
 
+**NOTE**: I use LATEX, but you can use .md or any other format.
 1.  **`docs/literature/`:** Literature Survey and Research Directory.
     - Contains research papers and literature surveys in LaTeX format (`docs/literature/*.tex`).
-
+    
 2.  **`tasks/rfc/`:** Request for Comments (RFC) Directory.
     - Stores RFCs for individual tasks in LaTeX format (`tasks/rfc/*.tex`), providing detailed specifications and discussions for specific functionalities.
 
-    Request for Comments (RFCs) are structured proposals for technical decision-making and standardization [1, 2]. They document technical specifications, solicit feedback, and preserve institutional knowledge [4, 9]. RFCs enhance utility by reducing silos, mitigating risks, and ensuring decision traceability [5, 9]. Types range from standards-track protocol specifications to organizational RFCs for team-specific designs [5, 11]. Modern RFCs often include problem statements, proposed solutions, alternatives, rollout plans, and security impact assessments [9, 10]. While RFCs improve decision quality, they also pose challenges like time overhead and consensus bottlenecks [6, 11].
-
+    
 **Additional Context:**
 
 Further files and folders can be added within `docs/` or `tasks/` to organize supplementary documentation such as integration specifications, testing strategies, and deployment procedures.
 
 ### 3. Directory Structure: Modular Project Organization
 
-The `directory-structure` files (located in `clinerules/directory-structure` and `cursor/rules/directory-structure.mdc`) define a clear and modular directory structure to organize project files logically. This structure promotes separation of concerns and enhances project maintainability.
+The `directory-structure` files (located in `clinerules/directory-structure` and `cursor/rules/directory-structure.mdc`) define a clear and modular directory structure to organize project files logically. This structure promotes separation of concerns and enhances project maintainability. This is a very simple file stating the directory structure so that all parts of a project development is covered like : (a) code, (b) test, (c) configurations, (d) data, (e) project rules, etc separately and in modular approach.
 
 **Directory Structure Diagram:**
 
@@ -221,20 +226,11 @@ This structure ensures that different aspects of the project, such as code, test
 
 By adhering to the principles and structure outlined in this Rules Template, development teams can leverage AI coding assistants more effectively, ensuring consistency, quality, and maintainability across their projects.
 
-## References
 
-[1]  "Product Requirement Document (PRD) in software development: purpose, utility, and types of documentation" 
-[2]  "Request for Comments (RFC) in software development: purpose, utility, and types of documentation" 
-[3]  "Software Architecture Document: purpose, utility, and types of architecture documentation" 
-[4]  "Technical Specifications Document in software development: purpose, utility, and types of technical documentation" 
-[5]  "Software Architecture Document: purpose, utility, and types of architecture documentation" 
-[6]  "Request for Comments (RFC) serve as structured proposals for technical decision-making" 
-[7]  "Software architecture documentation is a critical blueprint for software systems" 
-[8]  "arc42 template and links documentation to non-functional requirements and team collaboration" 
-[9]  "PRDs in Agile, where they might be more flexible, using user stories instead of rigid specs" 
-[10]  "Tools like Aha! and Figma enable collaborative, template-driven PRDs" 
-[11]  "RFCs improve decision quality, they introduce time overhead" 
-[12]  "PRD benefits like clarifying vision, defining target market" 
-[13]  "SMART goals in PRD, which is a good detail for key components" 
-[14]  "PRD details features and functionality for a product release" 
-[15]  "PRD vs. MRD and BRD (Business Requirements Document)" 
+## Additional Notes:
+
+1. **Product Requirements Documents (PRDs):** PRDs serve multiple purposes: defining product scope and goals, aligning stakeholders across teams, and mitigating risks early in development. They offer significant utility by providing clarity on product vision, prioritizing features, ensuring quality, and enabling traceability throughout the development lifecycle . While traditionally detailed in Waterfall, PRDs are adapted for Agile methodologies as leaner, iterative documents. Related documents include Market Requirements Documents (MRDs) and Functional Requirements Documents (FRDs).
+2. **Architecture Documentation:** It serves to preserve design rationale, support scalability, and facilitate decision-making. Key benefits include improved knowledge sharing, risk mitigation, and stakeholder communication. Types of architecture documentation vary, including decision-centric ADRs, structural C4 model diagrams, and behavioral sequence diagrams. Frameworks like arc42 provide structured templates for comprehensive architecture documentation.
+3. **Technical Specifications:** Technical Specifications Documents (TSDs) serve as blueprints translating business needs into technical guidelines. They clarify project vision, bridge stakeholder communication, and mitigate risks. TSDs are highly useful for engineers as step-by-step guides, for teams as alignment tools, and for projects in ensuring accountability. Technical documentation broadly includes process documentation like TSDs and SRS, product documentation (user manuals, API docs), and specialized specs for IT or Agile projects. A robust TSD enhances project clarity and reduces failure risks associated with unclear requirements.
+4. **RFCs (Request for Comments):** Request for Comments (RFCs) are structured proposals for technical decision-making and standardization. They document technical specifications, solicit feedback, and preserve institutional knowledge. RFCs enhance utility by reducing silos, mitigating risks, and ensuring decision traceability. Types range from standards-track protocol specifications to organizational RFCs for team-specific designs. Modern RFCs often include problem statements, proposed solutions, alternatives, rollout plans, and security impact assessments. While RFCs improve decision quality, they also pose challenges like time overhead and consensus bottlenecks.
+
