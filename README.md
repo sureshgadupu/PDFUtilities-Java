@@ -7,7 +7,20 @@ This template provides a starting point for AI pair-coding projects. To get star
 3.  **Windsurf** put the `.windsurfrules` directory in your project root.
 
 *Note: All these can be stacked on top of each other, simultaneously.*
+
+4.  **RooCode** copy `.windsurfrules` and rename to `.clinerules` and put in your project root. But note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root. So you SHOULD remove the directory `.clinerules/` to avoid adding two times. 
+
+```python
+IF using ONLY CLINE:
+    use `.clinerules/` directory in root.
+ELIF using ONLY RooCode:
+    copy `.windsurfrules` and rename to `.clinerules` and put in root.
+ELIF using BOTH CLINE and RooCode:
+    copy `.windsurfrules` and rename to `.clinerules` and put in root.
+```
+
 Then, create these directories in your project root:
+
 1. **`docs/`**
 
     ├── **`literature/`**
