@@ -12,7 +12,7 @@ This isn't evolution; it's **transcendence.** We've alchemically combined Memory
 
 This template relies on a carefully orchestrated system of directories and files for both Cursor and CLINE. Within each environment, there are exactly three crucial files that shape how the AI operates:
 
-1. <strong>rules</strong> –  
+1. <strong>rules (rules, plan, implement, debug)</strong> –  
    Houses the comprehensive set of software engineering best practices, AI coding guidelines, and systematic workflows. These rules ensure the AI agent manages tasks, planning, and code implementations rigorously.
 
 2. <strong>memory</strong> –  
@@ -21,9 +21,11 @@ This template relies on a carefully orchestrated system of directories and files
 3. <strong>directory-structure</strong> –  
    Dictates the top-level folder layout and how different files interrelate. This is where we define the hierarchy of docs, tasks, and source code directories, ensuring consistent organization across the entire project.
 
-In Cursor, these three files reside in <code>@cursor/rules</code>.  
-In CLINE, these three files reside in <code>clinerules/</code>.
-For Windsurf just add the files in <code>clinerules/</code>.
+In Cursor, these  files reside in <code>.cursor/rules</code>  
+
+In CLINE, these files reside in <code>.clinerules/</code>
+
+For Windsurf everything is in <code>.windsurfrules</code>
 
 ## Directory Structure
 
@@ -86,8 +88,8 @@ flowchart TD
     TECH --o LIT
     TASKS --o RFC
     
-    LIT --- TECH
-    RFC --- TASKS
+    
+    
 ```
 
 • <strong>Core Documents</strong>: Product Requirements (PRD), Architecture outlines, Technical overviews, Task plans, Active context, etc.  

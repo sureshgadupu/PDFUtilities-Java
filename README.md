@@ -2,14 +2,14 @@
 
 This template provides a starting point for AI pair-coding projects. To get started quickly:
 
-1.  **Cursor** put the `.cursor/rules` directory in your project root.
-2.  **Cline** put the `.clinerules` directory in your project root.
-3.  **Windsurf** put the `.windsurfrules` directory in your project root.
+1.  **Cursor:** put the `.cursor/rules` directory in your project root.
+2.  **Cline:** put the `.clinerules` directory in your project root.
+3.  **Windsurf:** put the `.windsurfrules` file in your project root.
 
 *Note: All these can be stacked on top of each other, simultaneously.*
 
-4.  **RooCode** copy `.windsurfrules` and rename to `.clinerules` and put in your project root. But note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root. So you SHOULD remove the directory `.clinerules/` to avoid adding two times. 
-
+4.  **RooCode** copy `.windsurfrules` and rename to `.clinerules` and put in your project root. 
+When using **BOTH** CLINE and RooCode:
 ```python
 IF using ONLY CLINE:
     use `.clinerules/` directory in root.
@@ -18,6 +18,7 @@ ELIF using ONLY RooCode:
 ELIF using BOTH CLINE and RooCode:
     copy `.windsurfrules` and rename to `.clinerules` and put in root.
 ```
+> Reason: note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root. So you SHOULD remove the directory `.clinerules/` to avoid adding two times. 
 
 Then, create these directories in your project root:
 
@@ -102,30 +103,42 @@ This template is built upon two fundamental pillars:
 By combining these principles, the Rules Template aims to provide a structured and reliable approach to AI-assisted coding.
 And based on the popular knowledge and research in these two fileds, we came up with this template.
 
-# Three Files:
+# Rule Files:
 
 This template relies on a carefully orchestrated system of directories and files for Cursor, Windsurf, CLINE and RooCode Within each environment, there are exactly three crucial files that shape how the AI operates:
 
-1. <strong>rules</strong> (rules.mdc) –
-   This includes a systematic workflow for a task. Includes popular and effective rules from many different template libraries and guitar github repositories. In addition, it includes processes for chain of thinking, separation of concerns, modular design.
+1. <strong>rules</strong> –
+   Thois can house generic rules. Bring your own flavour to this minimal document. Below are three files: (a) plan, (b) implement, (c) debug, that defines workflows for these three tasks based on refining 100s of rule repositories and software engineering best practices:
 
-2. <strong>memory</strong> (memory.mdc) –
+2. <strong>plan</strong> – Defines the Workflow to be followed for any Planning based on *chain of thinking*. includes **exhaustive searching and optimal plan, rigourous reasoning and user validation**.
+3. <strong>implement</strong> - Defines the Workflow to be followed for any Implementation. inspired by concepts like **seperation of concerns, modular design, and incremental development**. Has testing mandatory after every significant implementation.
+4. <strong>debug</strong> - This file defines rules for debugging when stuck in a loop or a hard debugging. Supports looking at the web and for previously solved errors too.
+5. <strong>memory</strong> –
    Next comes the recommended documentation. Software documentation starts with PRDs Recording the requirements, architecture plan, technical plan, and the RFCs for individual functionality or group of functionalities.
 So our documentation that also served as a context is very relevant for an AI cod as it has mostly the knowledge and the skills to work on and with these proper software documentations.
-3. <strong>directory-structure</strong> (directory-structure.mdc) –
+6. <strong>directory-structure</strong> (directory-structure) –
    This is a very simple file stating the directory structure so that all parts of a project development is covered like : (a) code, (b) test, (c) configurations, (d) data, (e) project rules, etc separately and in modular approach.
+
 In <strong>Cursor </strong>, these three files reside in <code>.cursor/rules</code>:
 
-<code>.cursor/rules/rules.mdc</code>
- <code>.cursor/rules/memory.mdc</code>
- <code>.cursor/rules/directory-structure.mdc</code>
-
+```bash
+.cursor/rules/rules.mdc
+.cursor/rules/plan.mdc
+.cursor/rules/implement.mdc
+.cursor/rules/debug.mdc
+.cursor/rules/memory.mdc
+.cursor/rules/directory-structure.mdc
+```
 In <strong>CLINE</strong>, these three files reside in <code>.clinerules/</code>:
 
- <code>.clinerules/rules</code>
- <code>.clinerules/memory</code>
- <code>.clinerules/directory-structure</code>
-
+```bash
+.clinerules/rules
+.clinerules/plan
+.clinerules/implement
+.clinerules/debug
+.clinerules/memory
+.clinerules/directory-structure
+```
 For <strong>Windsurf</strong> just add the files in <code>.windsurfrules</code>.
 
 
@@ -133,7 +146,7 @@ For <strong>Windsurf</strong> just add the files in <code>.windsurfrules</code>.
 
 This template is organized around three core files, each addressing a critical aspect of the development process:
 
-### 1. Rules: Systematic Workflow for Tasks
+### 1. Plan/Implement/Debug: Systematic Workflow for Tasks
 
 The `rules` files (located in `clinerules/rules` and `cursor/rules/rules.mdc`) define a structured, five-phased workflow for approaching any development task, regardless of granularity. This workflow is based on standard software engineering best practices and promotes a systematic approach to problem-solving.
 
@@ -196,8 +209,7 @@ flowchart TD
     TECH --o LIT
     TASKS --o RFC
 
-    LIT --- TECH
-    RFC --- TASKS
+  
 ```
 
 **Core Files (Required):**
@@ -283,7 +295,7 @@ This structure ensures that different aspects of the project, such as code, test
 By adhering to the principles and structure outlined in this Rules Template, development teams can leverage AI coding assistants more effectively, ensuring consistency, quality, and maintainability across their projects.
 
 ## To-Do:
-- [ ] 1: add roo code rules format
+- [ ] 1: add roo code rules format. Mode specific rules.
 - [ ] 2: example content of each file
 - [ ] 3: FAQs
 

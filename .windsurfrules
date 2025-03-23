@@ -220,9 +220,6 @@ flowchart TD
     PC --o LIT
     TC --o RFC
     
-    LIT ~~~ PC
-    RFC ~~~ TC
-    
 
 ```
 ## Core Files (Required)
