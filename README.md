@@ -79,7 +79,11 @@ Now just start coding using Cursor/Windsorf/CLINE/RooCode.
 
 (Copy above prompt as first prompt!)
 
-# 🔥 The Rules Template: Universal Rules for AI Coding Assistants 🔥
+# Tips in General Using Cursor, CLINE, RooCode, Windsurf:
+## CLINE/RooCode:
+1. Every time you change Roo Code **mode** in the middle of an task, it changes the system prompt and reset the prompt caching.
+
+# The Rules Template: Universal Rules for AI Coding Assistants 🔥 
 
 This template provides a robust and adaptable framework of rules designed to enhance the performance of AI coding assistants like Cursor and CLINE. Rooted in established software engineering principles and documentation best practices, it ensures consistent and effective AI-assisted development across different platforms.
 
