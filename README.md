@@ -29,6 +29,10 @@ ELIF using BOTH CLINE and RooCode:
 ```
 > Reason: note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root. So you SHOULD remove the directory `.clinerules/` to avoid adding two times. 
 
+**Note: If using Windsurf and including `.windsurfrules` at root, that will be automatically supported by RooCode too. So don't use `.clinerules` additionaly for RooCode.**
+
+> Reason: For compatibility across editors, RooCode automatically supports `.windsurfrules` and `.cursorrules/` (the older format). So currently RooCode is not able to read `.cursor/rules` but will read `.windsurfrules`.
+
 Then, create these directories in your project root:
 
 1. **`docs/`**
