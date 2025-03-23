@@ -4,6 +4,11 @@ To have a comprehensive and optimal Custom User Prompt (Rules) for AI coding. Th
 ## Target Audience:
 Both people exploring AI without prior knowledge but tasting the AI/LLM/Agents landscape. And experieced folks adapting to and integrating AI in their workflow. As better prompts may lead to better outputs. 
 
+## Features:
+1. **Cross-Platform Compatibility:** Respects Cursor, CLINE, RooCode Rule guidelines and mechanisms natively. Like For CLINE rules use use **PLAN Mode** as in their system prompts, whereas for RooCode we use **Architect Mode**. Similarly **Act Mode** for CLINE and **Code Mode** for RooCode. **Debug Mode** for RooCode has been used additionally. 
+2. **Latest Compatibility:** Designed to be compatible with the latest versions of Cursor and CLINE, RooCode. We have used `.cursor/rules/` directory for Cursor and ditched the deprecated `.cursorrules` file.For RooCode, we have used `.clinerules-{mode}` files and not the `.clinerules` file. With CLINE we have used the **deprecated** `.clinerules` file, **not** the `.clinerules` directory. This is to make it compatible with RooCode. 
+3. **Minimal Token Usage:** We have organized the rule files to be only added when demanded (on-demand-loading). For Cursor we have seperated the rules into seperate `.mdc` files in `.cursor/rules/` directory, and configured the files so as to be added only when required. For RooCode, we have seperated the ruls into the mode specific rule files `.clinerules-{mode}` and not everything in `.clinerules` file. This, will only load the required rules for corresponding modes. For CLINE, this is not yet natively supported, so we did a workaround!
+4. **Common Memory Bank:** We have a common memory bank for all the AI assistants. This maintains same context across all the AI assistants.
 
 Enough talking, let's get started.
 
@@ -12,24 +17,31 @@ Enough talking, let's get started.
 This template provides a starting point for AI pair-coding projects. To get started quickly:
 
 1.  **Cursor:** put the `.cursor/rules` directory in your project root.
-2.  **Cline:** put the `.clinerules` directory in your project root.
-3.  **Windsurf:** put the `.windsurfrules` file in your project root.
+2.  **CLINE or RooCode:** put the `.clinerules` file in your project root.
+3.  **RooCode:** put the `.clinerules-{mode}` files in your project root. i.e. `.clinerules-plan`, `.clinerules-act`, `.clinerules-debug`.
 
 *Note: All these can be stacked on top of each other, simultaneously.*
 
-4.  **RooCode** copy `.windsurfrules` and rename to `.clinerules` and put in your project root. 
-When using **BOTH** CLINE and RooCode:
+4.  **For CLINE** we will copy Mode specific rules to settings:
 ```python
-IF using ONLY CLINE:
-    use `.clinerules/` directory in root.
-ELIF using ONLY RooCode:
-    copy `.windsurfrules` and rename to `.clinerules` and put in root.
-ELIF using BOTH CLINE and RooCode:
-    copy `.windsurfrules` and rename to `.clinerules` and put in root.
+1. go to 'Settings' at top right corner.
+2. select the mode: 'Plan Mode' tab
+   a. go to the section: 'Custom Instructions'
+   b. copy the contents of file `clinerules/plan` to the text area.
+3. select the mode: 'Act Mode' tab
+   a. go to the section: 'Custom Instructions'
+   b. copy the contents of file `clinerules/implement` to the text area.
+   c. copy the contents of file `clinerules/debug` to the text area.
 ```
-> Reason: note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root. So you SHOULD remove the directory `.clinerules/` to avoid adding two times. 
+> Reason1: CLINE does not provide a way to append rules to its predefined rules. So we have to copy the rules to the settings.
 
-**Note: If using Windsurf and including `.windsurfrules` at root, that will be automatically supported by RooCode too. So don't use `.clinerules` additionaly for RooCode.**
+> Reason2: note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root.
+
+**DONE**
+
+---
+
+**Note: If using Windsurf and including `.windsurfrules` at root, that will be automatically supported by RooCode too.**
 
 > Reason: For compatibility across editors, RooCode automatically supports `.windsurfrules` and `.cursorrules/` (the older format). So currently RooCode is not able to read `.cursor/rules` but will read `.windsurfrules`.
 

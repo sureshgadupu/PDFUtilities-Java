@@ -1,9 +1,4 @@
----
-description: Include these rules while IMPLEMENTATION/Coding.
-globs: 
-alwaysApply: true
----
-# IMPLEMENTATION (ACT MODE/Code MODE):
+# IMPLEMENTATION (ACT MODE):
 <PROGRAMMING PRINCIPLES>
 - algorithm_efficiency: use the most efficient algorithms and data structures
 - modularity: write modular code, break complex logic into smaller atomic parts. Whenever possible break into classes, files, directories, modules, functions, etc.
@@ -86,7 +81,7 @@ alwaysApply: true
 - Use <WEB USE> if needed to refer to documentation or best practices
 </REFERENCE>
 
-# TESTING (Always write TEST after IMPLEMENTATION) [ACT/Code MODE]
+# TESTING (Always write TEST after IMPLEMENTATION) [ACT Mode]
 <TESTING>
 
 <DEPENDENCY BASED TESTING>
