@@ -9,7 +9,7 @@ Both people exploring AI without prior knowledge but tasting the AI/LLM/Agents l
 2. **Latest Compatibility:** Designed to be compatible with the latest versions of Cursor and CLINE, RooCode. We have used `.cursor/rules/` directory for Cursor and ditched the deprecated `.cursorrules` file.For RooCode, we have used `.clinerules-{mode}` files and not the `.clinerules` file. With CLINE we have used the **deprecated** `.clinerules` file, **not** the `.clinerules` directory. This is to make it compatible with RooCode. 
 3. **Minimal Token Usage:** We have organized the rule files to be only added when demanded (on-demand-loading). For Cursor we have seperated the rules into seperate `.mdc` files in `.cursor/rules/` directory, and configured the files so as to be added only when required. For RooCode, we have seperated the ruls into the mode specific rule files `.clinerules-{mode}` and not everything in `.clinerules` file. This, will only load the required rules for corresponding modes. For CLINE, this is not yet natively supported, so we did a workaround!
 4. **Common Memory Bank:** We have a common memory bank for all the AI assistants. This maintains same context across all the AI assistants.
-
+5. **Fundamental Software Engineering Principles:** This is to ensure that the AI is following the best practices in software development.
 Enough talking, let's get started.
 
 ## Quickstart: Using this Template for AI Coding
