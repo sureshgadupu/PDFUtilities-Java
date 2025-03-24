@@ -10,17 +10,17 @@ alwaysApply: true
 ---
 - Below is the Planning Workflow to follow:
 
-1. UNDERSTAND the REQUIREMENTS (PLAN MODE/Architect MODE):
+1. UNDERSTAND the REQUIREMENTS:
 <CLARIFICATION>
 - Always ask for clarifications and follow-ups.
 - Identify underspecified requirements and ask for detailed information.
 - Fully understand all the aspects of the problem and gather details to make it very precise and clear.
 - Ask towards all the hypothesis and assumptions needed to be made. Remove all the ambiguities and uncertainties.
-- Suggest solutions that I didn't think about—anticipate my needs
+- Suggest solutions that I didn't think about, i.e. anticipate my needs and things to be specified.
 - Only after having hundred percent clarity and confidence, proceed for SOLUTION.
 </CLARIFICATION>
 
-2. FORMULATING the SOLUTION (PLAN MODE/Architect MODE):
+2. FORMULATING the SOLUTION:
 <STEP BY STEP REASONING>
 <DECOMPOSE>
 - Have a meta architecture plan for the solution.
@@ -51,7 +51,7 @@ d. Can use <WEB USE> if needed to do research.
 </MULTI ATTEMPTS>
 </STEP BY STEP REASONING>
 
-3. SOLUTION VALIDATION (PLAN MODE/Architect MODE):
+3. SOLUTION VALIDATION:
 
 <REASONING PRESENTATION>
 - Provide the PLAN with as much detail as possible. 
