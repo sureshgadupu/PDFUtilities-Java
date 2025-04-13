@@ -1,3 +1,16 @@
+# V2: Updates [Major Token Saving updates]
+## 1. The Instruction Template follows Agile Developement Methodology (Software Development Life Cycle) and Software Engineering Best Practices.
+## 2. **3 New Modes** (Lean on Token Usage) are added to Cursor and RooCode.
+## 3. Built on a Stable Base version used by 300+ users, based on **Agile** Workflow.
+## Changelog:
+1. The seperation and independence of the rules from (a) Cursor, (b) CLINE, (c) RooCode, and (d) etc, is very precise.
+    a. One file only defined, and then symbolic links created to reuse it.
+    b. `.cursor/rules/` directory for Cursor, has the original files. `.roo/` and `.clinerules/` are symbolic links to these original files.
+
+2. Custom modes in (a) RooCode and (b) Cursor to save tokens. Extensively curated system prompts for these overriding the defaults.
+3. Updated to conform to latest custom prompt syntax in Roo Code and CLINE.
+---
+---
 # Motive:
 To have a comprehensive and optimal Custom User Prompt (Rules) for AI coding. These kind of rules are very much required as the **Quality** of Outputs is a function $[response \, Quality = f(prompt, LLM \, model)]$. Thus, for best performance we need very detailed instructions while also giving the LLM the freedom to explore and learn. I came up with this after first reading many many existing rules, experimenting with mine and finalized these as tested against real use-cases. 
 **Applications:** Tested for building Agentic products, plus writing research papers in AI.
@@ -5,47 +18,152 @@ To have a comprehensive and optimal Custom User Prompt (Rules) for AI coding. Th
 Both people exploring AI without prior knowledge but tasting the AI/LLM/Agents landscape. And experieced folks adapting to and integrating AI in their workflow. As better prompts may lead to better outputs. 
 
 ## Features:
-1. **Cross-Platform Compatibility:** Respects Cursor, CLINE, RooCode Rule guidelines and mechanisms natively. Like For CLINE rules use use **PLAN Mode** as in their system prompts, whereas for RooCode we use **Architect Mode**. Similarly **Act Mode** for CLINE and **Code Mode** for RooCode. **Debug Mode** for RooCode has been used additionally. 
-2. **Latest Compatibility:** Designed to be compatible with the latest versions of Cursor and CLINE, RooCode. We have used `.cursor/rules/` directory for Cursor and ditched the deprecated `.cursorrules` file.For RooCode, we have used `.clinerules-{mode}` files and not the `.clinerules` file. With CLINE we have used the **deprecated** `.clinerules` file, **not** the `.clinerules` directory. This is to make it compatible with RooCode. 
-3. **Minimal Token Usage:** We have organized the rule files to be only added when demanded (on-demand-loading). For Cursor we have seperated the rules into seperate `.mdc` files in `.cursor/rules/` directory, and configured the files so as to be added only when required. For RooCode, we have seperated the ruls into the mode specific rule files `.clinerules-{mode}` and not everything in `.clinerules` file. This, will only load the required rules for corresponding modes. For CLINE, this is not yet natively supported, so we did a workaround!
-4. **Common Memory Bank:** We have a common memory bank for all the AI assistants. This maintains same context across all the AI assistants.
-5. **Fundamental Software Engineering Principles:** This is to ensure that the AI is following the best practices in software development.
+1. **Cross-Platform Compatibility:** Use in *Any* IDE *Any* number of different computers for the same project! Respects Cursor, CLINE, RooCode Rule guidelines and mechanisms natively. Like For CLINE rules use use **PLAN Mode** as in their system prompts, whereas for RooCode we use **Architect Mode**. Similarly **Act Mode** for CLINE and **Code Mode** for RooCode. **Debug Mode** for RooCode has been used additionally. 
+2. **Latest Compatibility:** Designed to be compatible with the latest versions of Cursor and CLINE, RooCode. We have used `.cursor/rules/` directory for Cursor and ditched the deprecated `.cursorrules` file.For RooCode, we have used `.roo/` directory and sub directories within and not the `.clinerules` file. With CLINE we have used the the `.clinerules/` directory with sub-directories **not**  **deprecated** `.clinerules` file .
+3. **Minimal Token Usage:** We have tried to make it **AS MUCH AS POSSIBLE lean on TOKEN USAGE**. We have (a) incorporated newer Modes in RooCode and Cursor, that uses minimum tokens with efficiently carrying out tasks. (b) load only relevnt context.
+- We have organized the rule files to be only added when demanded (on-demand-loading). For Cursor we have seperated the rules into seperate `.mdc` files in `.cursor/rules/` directory, and configured the files so as to be added only when required. For RooCode, we have seperated the ruls into the mode specific rule files `.roo/rules-{mode}/` and not everything in `.clinerules` file. This, will only load the required rules for corresponding modes. For CLINE we did some workaround! But not much support there to save tokens for custom prompts.
+4. **Common Memory Bank:** We have a common memory bank for all the AI assistants. This maintains same context across all the AI assistants. 
+5. **Fundamental Software Engineering Principles:** This is to ensure that the AI is following the best practices in software development. Its **Agile** Development workflow.
 Enough talking, let's get started.
+
 
 ## Quickstart: Using this Template for AI Coding
 
+### BASIC SETUP:
 This template provides a starting point for AI pair-coding projects. To get started quickly:
 
-1.  **Cursor:** put the `.cursor/rules` directory in your project root.
-2.  **CLINE or RooCode:** put the `.clinerules` file in your project root.
-3.  **RooCode:** put the `.clinerules-{mode}` files in your project root. i.e. `.clinerules-plan`, `.clinerules-act`, `.clinerules-debug`.
+1.  **Cursor:** put the `.cursor/rules/` directory in your project root.
+2.  **RooCode:** put the `.roo/` directory in your project root.
+3.  **CLINE:** put the `.clinerules/` direcctory in your project root.
 
 *Note: All these can be stacked on top of each other, simultaneously.*
 
-4.  **For CLINE** we will copy Mode specific rules to settings:
-```python
-1. go to 'Settings' at top right corner.
-2. select the mode: 'Plan Mode' tab
-   a. go to the section: 'Custom Instructions'
-   b. copy the contents of file `clinerules/plan` to the text area.
-3. select the mode: 'Act Mode' tab
-   a. go to the section: 'Custom Instructions'
-   b. copy the contents of file `clinerules/implement` to the text area.
-   c. copy the contents of file `clinerules/debug` to the text area.
-```
-> Reason1: CLINE does not provide a way to append rules to its predefined rules. So we have to copy the rules to the settings.
-
-> Reason2: note that **BOTH** CLINE and RooCode can read `.clinerules` if kept at root.
-
-**DONE**
+**DONE BASIC SETUP**
+This will setup the Custom prompts and Memory Bank. What's left are Custom Modes. They are not necessary, but do that if you want to save tokens ($$).
 
 ---
 
-**Note: If using Windsurf and including `.windsurfrules` at root, that will be automatically supported by RooCode too.**
+### ADVANCED SETUP:
+We will create Custom Modes in Cursor and Roo-Code. CLINE still not supports it. So only CLINE users can skip it. 
 
-> Reason: For compatibility across editors, RooCode automatically supports `.windsurfrules` and `.cursorrules/` (the older format). So currently RooCode is not able to read `.cursor/rules` but will read `.windsurfrules`.
+*But I advise to check Roo Code (if you are using CLINE, its almost same).* 
+## Roo Code
+### Chat Mode
 
-Then, create these directories in your project root:
+Step 1: Go to Prompts.
+
+![Prompts](aux/images/roo_code/prompts.png)
+Click on the 2nd icon looking like a book, hover the cursor and it will say "Prompts".
+
+Step 2: 
+![chat](aux/images/roo_code/new_mode.png)
+In the "**Modes**" section click on "**+**" 
+
+Step 3: 
+![chat](aux/images/roo_code/chat_creation.png)
+- Name: Chat
+- Slug: chat
+- Save Location: Global
+- Role Definition: Think Comprehensively in full depth.
+- Available Tools: **NONE**
+- Custom Instructions: 
+
+Do as per the image.
+
+Step 4: 
+Click on "**Create Mode**" button at the bottom.
+It should look like this:
+![chat](aux/images/roo_code/chat.png)
+
+Rest everything is already at `.roo/system-prompt-chat`.
+
+### Write Mode
+
+Step 3:
+![chat](aux/images/roo_code/write_creation.png)
+- Name: Write
+- Slug: write
+- Save Location: Global
+- Role Definition: Create and Edit files and directories. A dedicated mode for all Read/Write operations and running commands.
+- Available Tools: 1. Read Files, 2. Edit Files, 3. Run Command
+- Custom Instructions: 
+Do as per the image.
+
+Step 4: 
+Click on "**Create Mode**" button at the bottom.
+It should look like this:
+![chat](aux/images/roo_code/write.png)
+
+Rest everything is already at `.roo/system-prompt-write`.
+
+### MCP Mode
+Step 3:
+![chat](aux/images/roo_code/mcp_creation.png)
+- Name: MCP
+- Slug: mcp
+- Save Location: Global
+- Role Definition: Using MCP servers connected.
+- Available Tools: 1. Use MCP
+- Custom Instructions: 
+Do as per the image.
+
+Step 4: 
+Click on "**Create Mode**" button at the bottom.
+It should look like this:
+![chat](aux/images/roo_code/mcp.png)
+
+Rest everything is already at `.roo/system-prompt-mcp`.
+## Cursor
+
+### Chat Mode
+
+Step 1:
+In the Modes section go to "Add Custom Mode"
+![create](aux/images/cursor/create_mode.png)
+
+Step 2:
+![chat](aux/images/cursor/chat.png)
+Fill as per the image.
+
+In "*Advanced options*", in the box for custom instructions, paste:
+
+> 1. Ask for clarifications and indepth follow-ups as much as possible.
+>2. Break down the problem into key concepts and smaller sub-problems iteratively.
+>3. Explore all directions possible.
+>4. Very rigrous and deep Reasoning.
+>5. Be very detailed and analytical.
+
+
+### Write Mode
+
+
+Step 2:
+![chat](aux/images/cursor/write.png)
+Fill as per the image.
+
+In "*Advanced options*", in the box for custom instructions, paste:
+>Create and Edit files and directories.
+
+### MCP Mode
+
+
+Step 2:
+![chat](aux/images/cursor/mcp.png)
+Fill as per the image.
+
+In "*Advanced options*", in the box for custom instructions, paste:
+>Run connected MCP servers. This is a dedicated mode for MCP and use other modes for read, write, run commands.
+
+---
+
+**Use:** This saves token and money, with all the same capabilities. But not necessary for performance. Only do if you want to save unnecessary tokens.
+
+### Done Custom Mode Creations!
+
+---
+---
+## Directory Structure
+Create this directory structure for the project:
 
 1. **`docs/`**
 
@@ -71,13 +189,56 @@ Then, create these directories in your project root:
 7. **`data/`**
 
 
-Now just start coding using Cursor/Windsorf/CLINE/RooCode.
+Now just start coding using Cursor/CLINE/RooCode/etc.
 
 **Note: For existing projects, follow above steps, additionally give the prompt to AI:**
 
 > Follow Custom Prompt to initialize and document the project in Memory Files following the structure and instructions for documenting in Memory Files. Write everything about the project in Memory Files, build a good context for the project. 
 
 (Copy above prompt as first prompt!)
+
+### Symbolic Links (these are automatically set up):
+
+It's done and you need not do anything. Just for your info.
+
+#### .roo/
+1. `.roo/rules/memory.mdc` has symbolic link to `.cursor/rules/memeory.mdc`
+2. `.roo/rules/directory-structure.mdc` has symbolic link to `.cursor/rules/directory-structure.mdc`
+3. `.roo/rules/rules.mdc` has symbolic link to `.cursor/rules/rules.mdc`
+Mode Specific Instructions:
+4. `.roo/rules-architect/plan.mdc` has symbolic link to `.cursor/rules/plan.mdc`
+5. `.roo/rules-code/implement.mdc` has symbolic link to `.cursor/rules/implement.mdc`
+6. `.roo/rules-debug/debug.mdc` has symbolic link to `.cursor/rules/debug.mdc`
+
+
+
+#### .clinerules/
+1. `.clinerules/rules/memory.mdc` has symbolic link to `.cursor/rules/memeory.mdc`
+2. `.clinerules/rules/directory-structure.mdc` has symbolic link to `.cursor/rules/directory-structure.mdc`
+3. `.clinerules/rules/rules.mdc` has symbolic link to `.cursor/rules/rules.mdc`
+Mode Specific Instructions:
+4. `.roo/rules-architect/plan.mdc` has symbolic link to `.clinerules/PLAN/plan.mdc`
+5. `.roo/rules-code/implement.mdc` has symbolic link to `.clinerules/ACT/implement.mdc`
+6. `.roo/rules-debug/debug.mdc` has symbolic link to `.clinerules/ACT/debug.mdc`
+---
+**Note1**: *The benefit of these symbolic links is that there is only one instance, and editing any will update all.*
+**Note2**: *The directory `.cursor/rules/` is containing original files, so **DO NOT DELETE THEM**. Even if you are not using **Cursor**, have them.*
+
+
+# Custom Modes
+## 1. Chat
+Just LLM call in this mode. NO file Reads, Write, Run Command. It is like a traditional ChatGPT. With consecutive LLM calls and a cumulative context.
+
+## 2. Write
+This has 3 capabilities: (a) Read, (b) Write and (c) Run commands. This is a very lean version that supports these requirements.
+
+## 3. MCP
+This Mode is bare ninimum System prompt for well executing the MCP server.
+The system prompt has been trimmed down to the minimum.
+
+**Note:** *This mode is to be used along with other modes, and not standalone.* There's a tool *`attemp_completion`* that is used to complete the task , which I removed from the system prompt. Still have *`switch_mode`* to switch the modes.
+So, it will change to "Chat" mode after its completion by default.
+
 
 # Tips in General Using Cursor, CLINE, RooCode, Windsurf:
 ## CLINE/RooCode:
@@ -324,7 +485,7 @@ This structure ensures that different aspects of the project, such as code, test
 By adhering to the principles and structure outlined in this Rules Template, development teams can leverage AI coding assistants more effectively, ensuring consistency, quality, and maintainability across their projects.
 
 ## To-Do:
-- [ ] 1: add roo code rules format. Mode specific rules.
+- [ ] 1: ignore files unified system to save tokens.
 - [ ] 2: example content of each file
 - [ ] 3: FAQs
 
