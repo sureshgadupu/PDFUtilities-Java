@@ -14,7 +14,7 @@
 # Motive:
 To have a comprehensive and optimal Custom User Prompt (Rules) for AI coding. These kind of rules are very much required as the **Quality** of Outputs is a function $[response \, Quality = f(prompt, LLM \, model)]$. Thus, for best performance we need very detailed instructions while also giving the LLM the freedom to explore and learn. I came up with this after first reading many many existing rules, experimenting with mine and finalized these as tested against real use-cases. 
 **Applications:** Tested for building Agentic products, plus writing research papers in AI.
-## Target Audience:
+## Target Audience: Begineer Fiendly & Potential Unlock for Experienced Folks.
 Both people exploring AI without prior knowledge but tasting the AI/LLM/Agents landscape. And experieced folks adapting to and integrating AI in their workflow. As better prompts may lead to better outputs. 
 
 ## Features:
@@ -488,6 +488,7 @@ By adhering to the principles and structure outlined in this Rules Template, dev
 - [ ] 1: ignore files unified system to save tokens.
 - [ ] 2: example content of each file
 - [ ] 3: FAQs
+- [ ] 4: TDD (Test Driven Development Prompt Injection)
 
 ## Additional Notes:
 
