@@ -489,6 +489,7 @@ By adhering to the principles and structure outlined in this Rules Template, dev
 - [ ] 2: example content of each file
 - [ ] 3: FAQs
 - [ ] 4: TDD (Test Driven Development Prompt Injection)
+- [ ] 5: Boomerang Task Mode and Context Handoff
 
 ## Additional Notes:
 
