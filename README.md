@@ -52,15 +52,15 @@ We will create Custom Modes in Cursor and Roo-Code. CLINE still not supports it.
 
 Step 1: Go to Prompts.
 
-![Prompts](aux/images/roo_code/prompts.png)
+![Prompts](resources/images/roo_code/prompts.png)
 Click on the 2nd icon looking like a book, hover the cursor and it will say "Prompts".
 
 Step 2: 
-![chat](aux/images/roo_code/new_mode.png)
+![chat](resources/images/roo_code/new_mode.png)
 In the "**Modes**" section click on "**+**" 
 
 Step 3: 
-![chat](aux/images/roo_code/chat_creation.png)
+![chat](resources/images/roo_code/chat_creation.png)
 - Name: Chat
 - Slug: chat
 - Save Location: Global
@@ -73,14 +73,14 @@ Do as per the image.
 Step 4: 
 Click on "**Create Mode**" button at the bottom.
 It should look like this:
-![chat](aux/images/roo_code/chat.png)
+![chat](resources/images/roo_code/chat.png)
 
 Rest everything is already at `.roo/system-prompt-chat`.
 
 ### Write Mode
 
 Step 3:
-![chat](aux/images/roo_code/write_creation.png)
+![chat](resources/images/roo_code/write_creation.png)
 - Name: Write
 - Slug: write
 - Save Location: Global
@@ -92,13 +92,13 @@ Do as per the image.
 Step 4: 
 Click on "**Create Mode**" button at the bottom.
 It should look like this:
-![chat](aux/images/roo_code/write.png)
+![chat](resources/images/roo_code/write.png)
 
 Rest everything is already at `.roo/system-prompt-write`.
 
 ### MCP Mode
 Step 3:
-![chat](aux/images/roo_code/mcp_creation.png)
+![chat](resources/images/roo_code/mcp_creation.png)
 - Name: MCP
 - Slug: mcp
 - Save Location: Global
@@ -110,7 +110,7 @@ Do as per the image.
 Step 4: 
 Click on "**Create Mode**" button at the bottom.
 It should look like this:
-![chat](aux/images/roo_code/mcp.png)
+![chat](resources/images/roo_code/mcp.png)
 
 Rest everything is already at `.roo/system-prompt-mcp`.
 ## Cursor
@@ -119,10 +119,10 @@ Rest everything is already at `.roo/system-prompt-mcp`.
 
 Step 1:
 In the Modes section go to "Add Custom Mode"
-![create](aux/images/cursor/create_mode.png)
+![create](resources/images/cursor/create_mode.png)
 
 Step 2:
-![chat](aux/images/cursor/chat.png)
+![chat](resources/images/cursor/chat.png)
 Fill as per the image.
 
 In "*Advanced options*", in the box for custom instructions, paste:
@@ -138,7 +138,7 @@ In "*Advanced options*", in the box for custom instructions, paste:
 
 
 Step 2:
-![chat](aux/images/cursor/write.png)
+![chat](resources/images/cursor/write.png)
 Fill as per the image.
 
 In "*Advanced options*", in the box for custom instructions, paste:
@@ -148,7 +148,7 @@ In "*Advanced options*", in the box for custom instructions, paste:
 
 
 Step 2:
-![chat](aux/images/cursor/mcp.png)
+![chat](resources/images/cursor/mcp.png)
 Fill as per the image.
 
 In "*Advanced options*", in the box for custom instructions, paste:
