@@ -40,7 +40,7 @@ This template provides a starting point for AI pair-coding projects. To get star
 
 **DONE BASIC SETUP**
 This will setup the Custom prompts and Memory Bank. What's left are Custom Modes. They are not necessary, but do that if you want to save tokens ($$).
-
+**Note: DO NOT COPY `.git` file from this repo. Cautiously AVOID that.**
 ---
 
 ### ADVANCED SETUP:
