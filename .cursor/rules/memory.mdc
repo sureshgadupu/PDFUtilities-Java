@@ -53,7 +53,9 @@ flowchart TD
   - How it should work
   - Component relationships
   - Dependencies
-  
+  - Work flow of the Solution
+  - Mermaid diagram of solution overview: each component and code flow
+
   3. [technical.md](mdc:docs/technical.md) (docs/technical.md): Development environment and stack
   - Technologies used
   - Development setup
@@ -154,6 +156,7 @@ flowchart TD
         P2[Document Current State in [active_context.md](mdc:tasks/active_context.md) and [tasks_plan.md](mdc:tasks/tasks_plan.md) ]
         P3[Clarify Next Steps and document in [tasks_plan.md](mdc:tasks/tasks_plan.md) ]
         P4[Update [lessons-learned.mdc](mdc:.cursor/rules/lessons-learned.mdc), [error-documentation.mdc](mdc:.cursor/rules/error-documentation.mdc)]
+        P5 Update [ [architecture.md](mdc:docs/architecture.md) ]
         
         P1 --> P2 --> P3 --> P4
     end
@@ -161,7 +164,7 @@ flowchart TD
     Start --> Process
 ```
 
-Note: When triggered by **update memory files**, I MUST review every Core memory  file, even if some don't require updates. Focus particularly on [active_context.md](mdc:tasks/active_context.md) and [tasks_plan.md](mdc:tasks/tasks_plan.md) as they track current state.
+Note: When triggered by **update memory files**, I MUST review every Core memory  file, even if some don't require updates. Focus particularly on [active_context.md](mdc:tasks/active_context.md) and [tasks_plan.md](mdc:tasks/tasks_plan.md) as they track current state. And [architecture.md](mdc:docs/architecture.md) has a section of current workflow that also gets updated by any code updates.
 
 # Project Intelligence ( [lessons-learned.mdc](mdc:.cursor/rules/lessons-learned.mdc) [.cursor/rules/lessons-learned.mdc] )
 
