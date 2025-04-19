@@ -128,6 +128,10 @@ flowchart TD
     Verification -->|Yes| DocumentMemory[Document in Memory Files]
 ```
 
+After every Plan/Architect task ALWAYS do 2 things:
+a. Document the plan into existing documentation and update files in `docs/` : i. `docs/architecture.md`, ii. `docs/product_requirement_docs.md`, iii. `docs/technical.md`
+b. Document the plans and related task planning & context in `tasks/`: i. `tasks/active_context.md`, ii. `tasks/tasks_plan.md`
+
 ## ACT or Code MODE
 ```mermaid
 flowchart TD
@@ -137,6 +141,10 @@ flowchart TD
     Rules --> Execute[Execute Task]
     Execute --> Document[Document Changes in Memory Files]
 ```
+
+After every code implementation/change ALWAYS do 2 things:
+a. Update other possibly affected codes in `src` and other codes at other places.
+b. Update the documentation in `docs/` and `tasks/`.
 
 # Documentation Updates
 

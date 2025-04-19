@@ -25,7 +25,7 @@ Both people exploring AI without prior knowledge but tasting the AI/LLM/Agents l
 4. **Common Memory Bank:** We have a common memory bank for all the AI assistants. This maintains same context across all the AI assistants. 
 5. **Fundamental Software Engineering Principles:** This is to ensure that the AI is following the best practices in software development. Its **Agile** Development workflow.
 Enough talking, let's get started.
-
+5. **AUTOMATICALLY updates documentation after any planning/implementation/debugging:** The custom prompts are designed such that it will ALWAYS upadate the documentation after any change. So you focus on building, and it will take care of other things.
 
 ## Quickstart: Using this Template for AI Coding
 
