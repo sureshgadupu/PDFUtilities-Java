@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<!--
+Clean, validated layout to fix Tab placement errors.
+Structure:
+- MenuBar
+- ToolBar (file actions)
+- TabPane (all feature tabs)
+- TableView (selected files)
+- Output options (folder selection)
+- Progress + status
+-->
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.pdfutilities.app.controller.MainController" spacing="0.0">
+
+    <children>
+        <!-- Menu Bar -->
+        <MenuBar>
+            <menus>
+                <Menu text="File">
+                    <items>
+                        <MenuItem text="Select Files" onAction="#handleSelectFiles"/>
+                        <MenuItem text="Select Folder" onAction="#handleSelectFolder"/>
+                        <SeparatorMenuItem />
+                        <MenuItem text="Exit" onAction="#handleExit"/>
+                    </items>
+                </Menu>
+                <Menu text="Tools">
+                    <items>
+                        <MenuItem text="Convert to DocX" onAction="#handleConvertToDocX"/>
+                        <MenuItem text="Compress PDF" onAction="#handleCompressPDF"/>
+                        <MenuItem text="Merge PDFs" onAction="#handleMergePDFs"/>
+                        <MenuItem text="Split PDF" onAction="#handleSplitPDF"/>
+                        <MenuItem text="Extract Text" onAction="#handleExtractText"/>
+                        <MenuItem text="Convert to Image" onAction="#handleConvertToImage"/>
+                    </items>
+                </Menu>
+                <Menu text="Help">
+                    <items>
+                        <MenuItem text="About" onAction="#handleAbout"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+
+        <!-- Main Content Area -->
+        <!-- Convert button wasn't under the table due to node order. 
+             Rework structure to: ToolBar -> TableView -> TabPane (with only the per-tab action row) -> Options/Progress -->
+        <VBox VBox.vgrow="ALWAYS">
+            <children>
+
+                <!-- File Selection Toolbar -->
+                <ToolBar>
+                    <items>
+                        <Button fx:id="selectFilesButton" onAction="#handleSelectFiles" text="Add Files">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                    <Image url="@../images/file-plus.png"/>
+                                </ImageView>
+                            </graphic>
+                            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                            <style>                               
+                                -fx-font-size: 13px;
+                                -fx-min-height: 35px;
+                                -fx-min-width: 120px;
+                            </style>
+                            <tooltip><Tooltip text="Add Files"/></tooltip>
+                        </Button>
+                        <Button fx:id="selectFolderButton" onAction="#handleSelectFolder" text="Select Folder">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                    <Image url="@../images/folder-plus.png"/>
+                                </ImageView>
+                            </graphic>
+                            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                            <style>                               
+                                -fx-font-size: 13px;
+                                -fx-min-height: 35px;
+                                -fx-min-width: 130px;
+                            </style>
+                            <tooltip><Tooltip text="Select Folder"/></tooltip>
+                        </Button>
+                        <Separator/>
+                        <Button fx:id="removeFileButton" onAction="#handleRemoveFile" text="Remove">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                    <Image url="@../images/trash.png"/>
+                                </ImageView>
+                            </graphic>
+                            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                            <style>                               
+                                -fx-font-size: 13px;
+                                -fx-min-height: 35px;
+                                -fx-min-width: 110px;
+                            </style>
+                            <tooltip><Tooltip text="Remove Selected"/></tooltip>
+                        </Button>
+                        <Button fx:id="clearAllButton" onAction="#handleClearAll" text="Clear">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                    <Image url="@../images/x-circle.png"/>
+                                </ImageView>
+                            </graphic>
+                            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                            <style>                               
+                                -fx-font-size: 13px;
+                                -fx-min-height: 35px;
+                                -fx-min-width: 100px;
+                            </style>
+                            <tooltip><Tooltip text="Clear All"/></tooltip>
+                        </Button>
+                         <Separator/>
+                         <CheckBox fx:id="showPasswordsCheckBox" text="Show passwords">
+                             <style>
+                                 -fx-font-size: 13px;
+                                 -fx-min-height: 35px;
+                             </style>
+                         </CheckBox>
+                    </items>
+                </ToolBar>
+
+                <!-- File Table (moved BEFORE tabs to ensure action rows sit visually below it) -->
+                <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" editable="true">
+                    <columns>
+                        <TableColumn fx:id="fileNameColumn" prefWidth="300.0" text="File Name"/>
+                        <TableColumn fx:id="fileSizeColumn" prefWidth="150.0" text="Size"/>
+                        <TableColumn fx:id="statusColumn" prefWidth="200.0" text="Status"/>
+                        <TableColumn fx:id="passwordColumn" prefWidth="220.0" text="Password"/>
+                    </columns>
+                </TableView>
+
+                <!-- Function Tabs: each tab shows ONLY its action row, which will now appear directly under the table -->
+                <TabPane fx:id="functionTabPane" tabClosingPolicy="UNAVAILABLE">
+                    <!-- Global tab header styling -->
+                    <padding>
+                        <Insets top="10" right="14" bottom="10" left="14"/>
+                    </padding>
+                    <!-- Increase space around tab labels using CSS-compatible TabPane properties -->
+                    <style>
+                        -fx-tab-min-height: 25;
+                        -fx-tab-max-height: 25;
+                        -fx-tab-min-width: 100;
+                        -fx-tab-max-width: 250;
+                        -fx-padding: 8 8 8 8; /* extra inner padding around tabs strip */
+                    </style>
+                    <tabs>
+                                                 <!-- Convert to Docx -->
+                         <Tab>
+                             <graphic>
+                                 <ImageView fitHeight="12.0" fitWidth="12.0" preserveRatio="true">
+                                     <Image url="@../images/file-word.png"/>
+                                 </ImageView>
+                             </graphic>
+                             <text>Convert to Docx</text>
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="convertButton" onAction="#handleConvertToDocX" text="Convert">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- No additional options for Docx conversion currently -->
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                                                 <!-- Compress PDF -->
+                         <Tab>
+                             <graphic>
+                                 <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                                     <Image url="@../images/archive.png"/>
+                                 </ImageView>
+                             </graphic>
+                             <text>Compress PDF</text>
+                            <content>
+                                <!-- Button directly under table + feature options will stay at the bottom area -->
+                                <VBox spacing="12">
+                                    <children>
+                                        <!-- Action button spacing -->
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="compressButton" onAction="#handleCompressPDF" text="Compress">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- Feature-specific options -->
+                                        <!-- Row 1: Compression Level -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <padding><Insets top="10" right="16" bottom="0" left="16"/></padding>
+                                            <children>
+                                                <Label text="Compression Level:">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <ComboBox fx:id="compressionLevelComboBox" prefWidth="220.0"/>
+                                            </children>
+                                        </HBox>
+                                        <!-- Row 2: Target Size moved to next line -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                            <children>
+                                                <Label text="Target File Size :">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <TextField fx:id="targetSizeField" prefWidth="140.0" promptText="e.g. 500"/>
+                                                <ComboBox fx:id="targetSizeUnit" prefWidth="100.0"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                                                 <!-- Merge PDFs -->
+                         <Tab>
+                             <graphic>
+                                 <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                                     <Image url="@../images/layers.png"/>
+                                 </ImageView>
+                             </graphic>
+                             <text>Merge PDFs</text>
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="mergeButton" onAction="#handleMergePDFs" text="Merge">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- Feature hint -->
+                                        <HBox alignment="CENTER_LEFT">
+                                            <padding><Insets top="10" right="16" bottom="8" left="16"/></padding>
+                                            <children>
+                                                <Label text="Arrange files in desired order by dragging and dropping)">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                                                 <!-- Split PDF -->
+                         <Tab>
+                             <graphic>
+                                 <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                                     <Image url="@../images/scissors.png"/>
+                                 </ImageView>
+                             </graphic>
+                             <text>Split PDF</text>
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="splitButton" onAction="#handleSplitPDF" text="Split">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- Feature-specific options -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <padding><Insets top="10" right="16" bottom="8" left="16"/></padding>
+                                            <children>
+                                                <RadioButton fx:id="splitEveryPage" text="Every Page" selected="true"/>
+                                                <RadioButton fx:id="splitCustomRange" text="Custom Range"/>
+                                                <Label text="Range:">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <TextField fx:id="customRangeField" promptText="e.g. 1-3,5,8-10" prefWidth="220.0"/>
+                                                <RadioButton fx:id="splitSizeBased" text="Size-Based"/>
+                                                <Label text="Max Size:">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <TextField fx:id="maxSizeField" promptText="Size" prefWidth="100.0"/>
+                                                <ComboBox fx:id="maxSizeUnit" prefWidth="80.0"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                                                                                                   <!-- Extract -->
+                          <Tab>
+                              <graphic>
+                                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                                      <Image url="@../images/file-text.png"/>
+                                  </ImageView>
+                              </graphic>
+                              <text>Extract</text>
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="extractButton" onAction="#handleExtractText" text="Extract">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- Feature-specific options -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <padding><Insets top="10" right="16" bottom="8" left="16"/></padding>
+                                            <children>
+                                                <CheckBox fx:id="extractTextCheckBox" text="Text"/>
+                                                <CheckBox fx:id="extractImagesCheckBox" text="Images"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                                                 <!-- Convert to Image -->
+                         <Tab>
+                             <graphic>
+                                 <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                                     <Image url="@../images/image.png"/>
+                                 </ImageView>
+                             </graphic>
+                             <text>Convert to Image</text>
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <HBox alignment="CENTER_RIGHT">
+                                            <padding><Insets top="12" right="16" bottom="4" left="16"/></padding>
+                                            <children>
+                                                <Button fx:id="convertImageButton" onAction="#handleConvertToImage" text="Convert">
+                                                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                        -fx-font-size: 13px;
+                                                    </style>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <!-- Feature-specific options -->
+                                        <GridPane hgap="12" vgap="10">
+                                            <padding><Insets top="10" right="16" bottom="8" left="16"/></padding>
+                                            <columnConstraints>
+                                                <ColumnConstraints minWidth="140.0" halignment="RIGHT"/>
+                                                <ColumnConstraints minWidth="240.0" hgrow="ALWAYS"/>
+                                            </columnConstraints>
+                                            <children>
+                                                <Label text="Format:" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <ComboBox fx:id="imageFormatComboBox" prefWidth="140.0" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                                <Label text="DPI:" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <ComboBox fx:id="dpiComboBox" prefWidth="140.0" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                                <Label text="Color Mode:" GridPane.rowIndex="2" GridPane.columnIndex="0">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <ComboBox fx:id="colorModeComboBox" prefWidth="140.0" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                                <Label text="Mode:" GridPane.rowIndex="3" GridPane.columnIndex="0">
+                                                    <style>
+                                                        -fx-font-weight: bold;
+                                                    </style>
+                                                </Label>
+                                                <ComboBox fx:id="imageModeComboBox" prefWidth="220.0" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+
+                <!-- File Table -->
+                <!-- Removed from here; moved above the TabPane so the per-tab action rows render visually beneath the table -->
+
+                <!-- Output Folder Options (global, single location at bottom) -->
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label text="Output Folder:"/>
+                        <!-- Declare ToggleGroup as an fx:define item (not a child Node) -->
+                        <fx:define>
+                            <ToggleGroup fx:id="outputFolderGroup"/>
+                        </fx:define>
+                        <RadioButton fx:id="sameAsInputRadioButton" selected="true" text="Same as Input" toggleGroup="$outputFolderGroup"/>
+                        <RadioButton fx:id="customFolderRadioButton" text="Custom Folder" toggleGroup="$outputFolderGroup"/>
+                        <Button fx:id="browseFolderButton" onAction="#handleBrowseFolder" text="Browse"/>
+                        <TextField fx:id="outputFolderTextField" HBox.hgrow="ALWAYS" promptText="Choose output directory"/>
+                    </children>
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                    </padding>
+                </HBox>
+
+                <!-- Progress Bar (status label removed; toast notifications will be used for messages) -->
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <!-- <children>
+                        <ProgressBar fx:id="progressBar" prefWidth="200.0" progress="0.0"/>
+                    </children> -->
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                    </padding>
+                </HBox>
+
+            </children>
+        </VBox>
+    </children>
+</VBox>
