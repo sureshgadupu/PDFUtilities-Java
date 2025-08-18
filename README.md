@@ -49,8 +49,8 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
 
 ## 🛠️ Technology Stack
 
-- **Java 17** - Core programming language
-- **JavaFX 21** - Modern desktop GUI framework
+- **Java 24** - Core programming language
+- **JavaFX 24** - Modern desktop GUI framework
 - **Apache PDFBox 2.0.30** - PDF manipulation library
 - **Apache POI 5.2.5** - DOCX conversion support
 - **ControlsFX 11.1.2** - Enhanced UI controls
@@ -58,9 +58,9 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
 
 ## 📋 Prerequisites
 
-- **Java 17** or higher
+- **Java 24** or higher
 - **Maven 3.6+** (for building from source)
-- **Windows 10/11**, **macOS 10.15+**, or **Linux** (Ubuntu 18.04+)
+- **Windows 10/11**, **macOS 10.15+**, or **Linux** (Ubuntu 22.04+)
 
 ## 🚀 Quick Start
 
@@ -99,6 +99,8 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
    # On Windows, use the provided batch file
    run.bat
    ```
+
+````
 
 ## 🎯 Usage Guide
 
@@ -221,7 +223,7 @@ mvn clean package
 
 **"JavaFX runtime components are missing"**
 
-- Ensure Java 17+ is installed
+- Ensure Java 21+ is installed
 - Try running with: `mvn javafx:run`
 
 **"Out of memory" errors with large PDFs**
