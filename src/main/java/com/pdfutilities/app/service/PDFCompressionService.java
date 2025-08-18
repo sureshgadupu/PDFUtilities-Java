@@ -7,9 +7,11 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.Loader;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -184,7 +186,8 @@ public class PDFCompressionService extends BasePDFService {
     }
 
     private void compressPdf(File pdfFile, String outputDirectory, CompressionLevel level) throws IOException {
-        try (PDDocument doc = PDDocument.load(pdfFile)) {
+        try (FileInputStream fis = new FileInputStream(pdfFile);
+             PDDocument doc = Loader.loadPDF(pdfFile)) {
 
             // Iterate all pages and downscale/convert raster images to JPEG
             for (PDPage page : doc.getPages()) {
@@ -376,7 +379,8 @@ public class PDFCompressionService extends BasePDFService {
      */
     private File compressWithParams(File pdfFile, String outputDirectory, float jpegQuality, double scale) throws IOException {
         File out;
-        try (PDDocument doc = PDDocument.load(pdfFile)) {
+        try (FileInputStream fis = new FileInputStream(pdfFile);
+             PDDocument doc = Loader.loadPDF(pdfFile)) {
             int pageIndex = 0;
             for (PDPage page : doc.getPages()) {
                 PDResources resources = page.getResources();

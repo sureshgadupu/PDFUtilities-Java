@@ -1,5 +1,6 @@
 package com.pdfutilities.app.service;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -82,10 +83,7 @@ public class PDFSplitService extends BasePDFService {
      * @throws IOException if an I/O error occurs
      */
     private void splitPdf(File pdfFile, String outputDirectory) throws IOException {
-        PDDocument document = null;
-        try {
-            // Load PDF document (PDFBox 2.0.x)
-            document = PDDocument.load(pdfFile);
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
 
             switch (splitMode) {
                 case EVERY_PAGE:
@@ -102,14 +100,6 @@ public class PDFSplitService extends BasePDFService {
                     break;
             }
 
-        } finally {
-            if (document != null) {
-                try {
-                    document.close();
-                } catch (IOException e) {
-                    // Ignore
-                }
-            }
         }
     }
 

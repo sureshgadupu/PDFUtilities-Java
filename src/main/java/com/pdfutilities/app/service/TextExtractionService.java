@@ -1,6 +1,7 @@
 package com.pdfutilities.app.service;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -8,8 +9,10 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -47,7 +50,7 @@ public class TextExtractionService extends BasePDFService {
         boolean allSuccessful = true;
         
         for (File pdfFile : inputFiles) {
-            try {
+            try (PDDocument document = Loader.loadPDF(pdfFile)) {
                 extractContent(pdfFile, outputDirectory);
             } catch (Exception e) {
                 System.err.println("Error extracting from " + pdfFile.getName() + ": " + e.getMessage());
@@ -67,9 +70,9 @@ public class TextExtractionService extends BasePDFService {
     private void extractContent(File pdfFile, String outputDirectory) throws IOException {
         PDDocument document = null;
         try {
-            // Load PDF document (PDFBox 2.0.x)
-            document = PDDocument.load(pdfFile);
-            
+            // Load PDF document (PDFBox 3.x)
+            document = Loader.loadPDF(pdfFile);
+
             String baseName = pdfFile.getName().replace(".pdf", "");
             
             // Extract text if requested

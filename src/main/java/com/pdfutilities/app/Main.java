@@ -59,11 +59,9 @@ public class Main extends Application {
     }
 
     /**
-     * Main method - entry point for the application
-     * 
-     * @param args command line arguments
+     * Main entry point for native-image and standard Java execution
      */
     public static void main(String[] args) {
-        launch();
+        Application.launch(Main.class, args);
     }
 }

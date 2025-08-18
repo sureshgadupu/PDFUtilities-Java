@@ -2,6 +2,7 @@ package com.pdfutilities.app.service;
 
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
@@ -13,6 +14,7 @@ import org.apache.poi.xwpf.usermodel.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +60,8 @@ public class DocxConversionService extends BasePDFService {
         FileOutputStream fos = null;
 
         try {
-            // Load PDF (PDFBox 2.0.x API)
-            pdf = PDDocument.load(pdfFile);
+            // Load PDF (PDFBox 3.x API)
+            pdf = Loader.loadPDF(pdfFile);
 
             // 1) Extract text with preserved line breaks (more editable-friendly)
             PDFTextStripper stripper = new PDFTextStripper();

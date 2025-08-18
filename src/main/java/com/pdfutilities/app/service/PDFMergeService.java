@@ -1,10 +1,8 @@
 package com.pdfutilities.app.service;
 
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
-import org.apache.pdfbox.io.MemoryUsageSetting;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -43,23 +41,10 @@ public class PDFMergeService extends BasePDFService {
         PDFMergerUtility merger = new PDFMergerUtility();
         merger.setDestinationFileName(outputFile.getAbsolutePath());
 
-        // Add sources as InputStreams to ensure proper resource management
-        FileInputStream[] streams = new FileInputStream[inputFiles.size()];
-        try {
-            for (int i = 0; i < inputFiles.size(); i++) {
-                streams[i] = new FileInputStream(inputFiles.get(i));
-                merger.addSource(streams[i]);
-            }
-            // Use in-memory merging; switch to temp-file if very large inputs
-            merger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
-        } finally {
-            // Ensure all streams are closed
-            for (FileInputStream fis : streams) {
-                if (fis != null) {
-                    try { fis.close(); } catch (IOException ignore) {}
-                }
-            }
+        for (File file : inputFiles) {
+            merger.addSource(file);
         }
+        merger.mergeDocuments(null); // Use default memory settings
 
         System.out.println("Merged " + inputFiles.size() + " PDF files into " + outputFile.getName());
     }

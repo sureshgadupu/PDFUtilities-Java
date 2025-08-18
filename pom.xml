@@ -14,14 +14,14 @@
     <description>A Java-based desktop application for PDF manipulation</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>24</maven.compiler.source>
+        <maven.compiler.target>24</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>21.0.2</javafx.version>
-        <pdfbox.version>2.0.30</pdfbox.version>
-        <poi.version>5.2.5</poi.version>
-        <controlsfx.version>11.1.2</controlsfx.version>
-        <slf4j.version>2.0.12</slf4j.version>
+        <javafx.version>24.0.2</javafx.version>
+        <pdfbox.version>3.0.5</pdfbox.version>
+        <poi.version>5.4.1</poi.version>
+        <controlsfx.version>11.2.2</controlsfx.version>
+        <slf4j.version>2.0.17</slf4j.version>
 
     </properties>
 
@@ -128,7 +128,38 @@
                     <addModules>javafx.controls,javafx.fxml</addModules>
                 </configuration>
             </plugin>
-            
+
+            <!-- Maven Dependency Plugin to copy JavaFX modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-dependencies-jlink</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Maven Shade Plugin for creating fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

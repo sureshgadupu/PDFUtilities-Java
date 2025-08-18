@@ -1,7 +1,7 @@
 package com.pdfutilities.app.service;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import java.io.IOException;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
@@ -105,7 +105,7 @@ public class PDFToImageService extends BasePDFService {
      * Render each page to an individual image file.
      */
     private void convertEachPage(File pdfFile, String outputDirectory) throws IOException {
-        try (PDDocument document = PDDocument.load(pdfFile)) {
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
             PDFRenderer renderer = new PDFRenderer(document);
             String base = stripPdfExt(pdfFile.getName());
 
@@ -124,7 +124,7 @@ public class PDFToImageService extends BasePDFService {
      * Note: This can be memory intensive for large documents; keep DPI reasonable.
      */
     private void convertEntirePdfToSingleImage(File pdfFile, String outputDirectory) throws IOException {
-        try (PDDocument document = PDDocument.load(pdfFile)) {
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
             PDFRenderer renderer = new PDFRenderer(document);
 
             BufferedImage[] pages = new BufferedImage[document.getNumberOfPages()];
