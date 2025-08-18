@@ -1,0 +1,137 @@
+name: Build and Release with jpackage
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Run jpackage (Linux)
+        run: |
+          chmod +x package-app.sh
+          ./package-app.sh
+      - name: Upload installer artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Linux
+          path: installers/PDF Utilities/bin/*
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Run jpackage (macOS)
+        run: |
+          chmod +x package-app.sh
+          ./package-app.sh
+      - name: Upload installer artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-macOS
+          path: installers/PDF Utilities/bin/*
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Run jpackage (Windows)
+        run: |
+          package-app.bat
+      - name: Upload installer artifact (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Windows
+          path: installers/PDF Utilities/bin/*
+
+  build-fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+      - name: Install dependencies
+        run: dnf install -y git maven java-21-openjdk-devel
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        run: export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Run jpackage (Fedora)
+        run: |
+          chmod +x package-app.sh
+          ./package-app.sh
+      - name: Upload installer artifact (Fedora)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Fedora
+          path: installers/PDF Utilities/bin/*
+
+  release:
+    needs: [build-linux, build-macos, build-windows, build-fedora]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download installer artifact (Linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Linux
+          path: ./release-installer/linux
+      - name: Download installer artifact (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-macOS
+          path: ./release-installer/macos
+      - name: Download installer artifact (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Windows
+          path: ./release-installer/windows
+      - name: Download installer artifact (Fedora)
+        uses: actions/download-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Fedora
+          path: ./release-installer/fedora
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-installer/linux/*
+            release-installer/macos/*
+            release-installer/windows/*
+            release-installer/fedora/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
