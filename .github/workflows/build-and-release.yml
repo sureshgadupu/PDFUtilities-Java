@@ -89,7 +89,14 @@ jobs:
       image: fedora:latest
     steps:
       - name: Install dependencies
-        run: dnf install -y git maven java-latest-openjdk-devel
+        run: |
+          dnf install -y git maven wget
+          wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.rpm
+          sudo rpm -ivh jdk-24_linux-x64_bin.rpm
+      - name: Set JAVA_HOME
+        run: |
+          export JAVA_HOME=/usr/java/latest
+          echo "JAVA_HOME=$JAVA_HOME"
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Debug Java Version
