@@ -1,60 +1,47 @@
 @echo off
 REM Script to create a standalone native installer for the JavaFX application on Windows
 
-setlocal enabledelayedexpansion
+echo Starting packaging process...
 
 REM Check for Maven
+echo Checking for Maven...
 where mvn >nul 2>nul
 if errorlevel 1 (
     echo ERROR: Maven is not installed or not in PATH
     echo Please install Maven and add it to your PATH
     exit /b 1
 )
+echo Maven found.
 
-REM Clean and package the application
-mvn clean package
+REM Check for jpackage
+echo Checking for jpackage...
+where jpackage >nul 2>nul
 if errorlevel 1 (
-    echo ERROR: Failed to build application JAR
+    echo ERROR: jpackage is not installed or not in PATH
+    echo Please install JDK 14+ which includes jpackage utility
     exit /b 1
 )
+echo jpackage found.
 
-REM Get the JAR file name
-for /f "delims=" %%F in ('dir /b /a-d target\pdf-utilities-app-*.jar ^| findstr /v sources ^| findstr /v javadoc') do set JAR_FILE=%%F
-if not defined JAR_FILE (
-    echo ERROR: Could not find packaged JAR file!
-    exit /b 1
-)
-set JAR_NAME=%JAR_FILE%
-echo Application packaged successfully: %JAR_NAME%
-
-REM Define JavaFX modules
-set JAVAFX_MODULES=javafx.controls,javafx.fxml
-
-REM Remove previous installers
-if exist installers rmdir /s /q installers
-
-REM Create native installer using jpackage
-set INSTALLER_TYPE=msi
-
-jpackage ^
-    --input target ^
-    --name "PDF Utilities" ^
-    --app-version 1.0.0 ^
-    --main-class com.pdfutilities.app.Main ^
-    --main-jar "%JAR_NAME%" ^
-    --type "%INSTALLER_TYPE%" ^
-    --dest installers ^
-    --module-path "target\lib" ^
-    --add-modules "%JAVAFX_MODULES%"
+REM Clean, package, and create installer with Maven
+echo Cleaning, packaging, and creating installer with Maven...
+mvn clean install
 
 if errorlevel 1 (
-    echo ERROR: Failed to create native installer with jpackage
+    echo ERROR: Failed to create native installer
+    echo Check Maven build output above for details
     exit /b 1
 ) else (
     echo Native installer created successfully!
-    echo Installers are located in the 'installers' directory.
+    echo Installers are located in the 'target/installers' directory.
+    
+    REM Show what was created
+    if exist target\installers (
+        echo Contents of target\installers directory:
+        dir target\installers
+    ) else (
+        echo WARNING: Installers directory not found
+    )
 )
 
 echo Script finished.
-endlocal
-

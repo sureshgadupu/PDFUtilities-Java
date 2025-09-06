@@ -22,7 +22,11 @@
         <poi.version>5.4.1</poi.version>
         <controlsfx.version>11.2.2</controlsfx.version>
         <slf4j.version>2.0.17</slf4j.version>
-
+        <!-- jpackage properties -->
+        <app.name>PDF Utilities</app.name>
+        <app.version>1.0.0</app.version>
+        <app.main.class>com.pdfutilities.app.Main</app.main.class>
+        <app.modules>javafx.controls,javafx.fxml</app.modules>
     </properties>
 
     <dependencies>
@@ -175,12 +179,663 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.pdfutilities.app.Main</mainClass>
+                                    <manifestEntries>
+                                        <Main-Class>com.pdfutilities.app.Main</Main-Class>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Exec Maven Plugin for jpackage -->
+            <!-- Cross-platform jpackage plugin configurations -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <!-- Windows MSI Installer -->
+                    <execution>
+                        <id>jpackage-windows-msi</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.windows}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>msi</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/windows</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--copyright</argument>
+                                <argument>Copyright © 2025 Full Stack Code. All rights reserved.</argument>
+                                <!-- Windows-specific options -->
+                                <argument>--win-dir-chooser</argument>
+                                <argument>--win-shortcut</argument>
+                                <argument>--win-menu</argument>
+                                <argument>--win-menu-group</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--win-upgrade-uuid</argument>
+                                <argument>dfdb4973-88c5-4709-bfc4-575d599d2944</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Windows EXE Installer (Alternative) -->
+                    <execution>
+                        <id>jpackage-windows-exe</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.windows.exe}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>exe</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/windows</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--copyright</argument>
+                                <argument>Copyright © 2025 Full Stack Code. All rights reserved.</argument>
+                                <!-- Windows EXE specific options -->
+                                <argument>--win-shortcut</argument>
+                                <argument>--win-menu</argument>
+                                <argument>--win-menu-group</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- macOS DMG Installer -->
+                    <execution>
+                        <id>jpackage-macos-dmg</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.macos}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>dmg</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/macos</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--copyright</argument>
+                                <argument>Copyright © 2025 Full Stack Code. All rights reserved.</argument>
+                                <!-- macOS-specific options -->
+                                <argument>--mac-package-identifier</argument>
+                                <argument>com.fullstackcode.pdfutilities</argument>
+                                <argument>--mac-package-name</argument>
+                                <argument>PDF Utilities</argument>
+                                <!-- Code signing (uncomment if you have certificates) -->
+                                <!-- <argument>-mac-sign</argument> -->
+                                <!-- <argument>-mac-signing-key-user-name</argument> -->
+                                <!-- <argument>Your Developer Name</argument> -->
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- macOS PKG Installer (Alternative) -->
+                    <execution>
+                        <id>jpackage-macos-pkg</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.macos.pkg}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>pkg</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/macos</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--mac-package-identifier</argument>
+                                <argument>com.fullstackcode.pdfutilities</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Ubuntu/Debian DEB Package -->
+                    <execution>
+                        <id>jpackage-ubuntu-deb</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.ubuntu}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>pdf-utilities</argument> <!-- lowercase for debian -->
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>deb</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/ubuntu</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--copyright</argument>
+                                <argument>Copyright © 2025 Full Stack Code. All rights reserved.</argument>
+                                <!-- Linux-specific options -->
+                                <argument>--linux-package-name</argument>
+                                <argument>pdf-utilities</argument>
+                                <argument>--linux-app-category</argument>
+                                <argument>Office</argument>
+                                <argument>--linux-menu-group</argument>
+                                <argument>Office</argument>
+                                <argument>--linux-shortcut</argument>
+                                <!-- Package dependencies (adjust as needed) -->
+                                <argument>--linux-package-deps</argument>
+                                <argument>openjdk-11-jre | openjdk-17-jre | openjdk-21-jre</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Fedora/RHEL RPM Package -->
+                    <execution>
+                        <id>jpackage-fedora-rpm</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.fedora}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>pdf-utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>rpm</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/fedora</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--description</argument>
+                                <argument>PDF Utilities - A comprehensive tool for PDF manipulation and processing</argument>
+                                <argument>--vendor</argument>
+                                <argument>Full Stack Code</argument>
+                                <argument>--copyright</argument>
+                                <argument>Copyright © 2025 Full Stack Code. All rights reserved.</argument>
+                                <!-- Linux RPM specific options -->
+                                <argument>--linux-package-name</argument>
+                                <argument>pdf-utilities</argument>
+                                <argument>--linux-app-category</argument>
+                                <argument>Office</argument>
+                                <argument>--linux-menu-group</argument>
+                                <argument>Office</argument>
+                                <argument>--linux-shortcut</argument>
+                                <!-- RPM dependencies -->
+                                <argument>--linux-package-deps</argument>
+                                <argument>java-11-openjdk | java-17-openjdk | java-21-openjdk</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Generic App Image (Cross-platform fallback) -->
+                    <execution>
+                        <id>jpackage-app-image</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>jpackage</executable>
+                            <skip>${skip.app.image}</skip>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.build.directory}</argument>
+                                <argument>--name</argument>
+                                <argument>PDF Utilities</argument>
+                                <argument>--app-version</argument>
+                                <argument>1.0.0</argument>
+                                <argument>--main-class</argument>
+                                <argument>com.pdfutilities.app.Main</argument>
+                                <argument>--main-jar</argument>
+                                <argument>${project.build.finalName}.jar</argument>
+                                <argument>--type</argument>
+                                <argument>app-image</argument>
+                                <argument>--dest</argument>
+                                <argument>${project.build.directory}/installers/app-image</argument>
+                                <argument>--module-path</argument>
+                                <argument>${project.build.directory}/lib</argument>
+                                <argument>--add-modules</argument>
+                                <argument>javafx.controls,javafx.fxml</argument>
+                                <argument>--java-options</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>--verbose</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Profile-based OS detection and configuration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>detect-os</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <condition property="isWindows">
+                                    <os family="windows"/>
+                                </condition>
+                                <condition property="isMac">
+                                    <os family="mac"/>
+                                </condition>
+                                <condition property="isUnix">
+                                    <os family="unix"/>
+                                </condition>
+                                <condition property="isLinux">
+                                    <and>
+                                        <os family="unix"/>
+                                        <not>
+                                            <os family="mac"/>
+                                        </not>
+                                    </and>
+                                </condition>
+
+                                <!-- Set skip properties based on OS -->
+                                <condition property="skip.windows" value="false" else="true">
+                                    <isset property="isWindows"/>
+                                </condition>
+                                <condition property="skip.windows.exe" value="true" else="true">
+                                    <isset property="isWindows"/>
+                                </condition>
+                                <condition property="skip.macos" value="false" else="true">
+                                    <isset property="isMac"/>
+                                </condition>
+                                <condition property="skip.macos.pkg" value="true" else="true">
+                                    <isset property="isMac"/>
+                                </condition>
+                                <condition property="skip.ubuntu" value="false" else="true">
+                                    <isset property="isLinux"/>
+                                </condition>
+                                <condition property="skip.fedora" value="true" else="true">
+                                    <isset property="isLinux"/>
+                                </condition>
+                                <condition property="skip.app.image" value="true" else="false">
+                                    <or>
+                                        <isset property="isWindows"/>
+                                        <isset property="isMac"/>
+                                        <isset property="isLinux"/>
+                                    </or>
+                                </condition>
+
+                                <echo message="Detected OS: Windows=${isWindows}, Mac=${isMac}, Linux=${isLinux}"/>
+                                <echo message="Skip flags: windows=${skip.windows}, macos=${skip.macos}, ubuntu=${skip.ubuntu}, fedora=${skip.fedora}"/>
+                            </target>
+                            <exportAntProperties>true</exportAntProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Profile-based OS detection and configuration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>detect-os</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <condition property="isWindows">
+                                    <os family="windows"/>
+                                </condition>
+                                <condition property="isMac">
+                                    <os family="mac"/>
+                                </condition>
+                                <condition property="isUnix">
+                                    <os family="unix"/>
+                                </condition>
+                                <condition property="isLinux">
+                                    <and>
+                                        <os family="unix"/>
+                                        <not>
+                                            <os family="mac"/>
+                                        </not>
+                                    </and>
+                                </condition>
+
+                                <!-- Set skip properties based on OS -->
+                                <condition property="skip.windows" value="false" else="true">
+                                    <isset property="isWindows"/>
+                                </condition>
+                                <condition property="skip.windows.exe" value="true" else="true">
+                                    <isset property="isWindows"/>
+                                </condition>
+                                <condition property="skip.macos" value="false" else="true">
+                                    <isset property="isMac"/>
+                                </condition>
+                                <condition property="skip.macos.pkg" value="true" else="true">
+                                    <isset property="isMac"/>
+                                </condition>
+                                <condition property="skip.ubuntu" value="false" else="true">
+                                    <isset property="isLinux"/>
+                                </condition>
+                                <condition property="skip.fedora" value="true" else="true">
+                                    <isset property="isLinux"/>
+                                </condition>
+                                <condition property="skip.app.image" value="true" else="false">
+                                    <or>
+                                        <isset property="isWindows"/>
+                                        <isset property="isMac"/>
+                                        <isset property="isLinux"/>
+                                    </or>
+                                </condition>
+
+                                <echo message="Detected OS: Windows=${isWindows}, Mac=${isMac}, Linux=${isLinux}"/>
+                                <echo message="Skip flags: windows=${skip.windows}, macos=${skip.macos}, ubuntu=${skip.ubuntu}, fedora=${skip.fedora}"/>
+                            </target>
+                            <exportAntProperties>true</exportAntProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+    <!-- Add these profiles to your pom.xml for explicit OS-based building -->
+    <profiles>
+        <!-- Windows Profile -->
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <skip.windows>false</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- Windows EXE Profile (explicit) -->
+        <profile>
+            <id>windows-exe</id>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>false</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- macOS Profile -->
+        <profile>
+            <id>macos</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>false</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- macOS PKG Profile (explicit) -->
+        <profile>
+            <id>macos-pkg</id>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>false</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- Ubuntu/Debian Profile -->
+        <profile>
+            <id>ubuntu</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+                <file>
+                    <exists>/etc/debian_version</exists>
+                </file>
+            </activation>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>false</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- Fedora/RHEL Profile -->
+        <profile>
+            <id>fedora</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+                <file>
+                    <exists>/etc/redhat-release</exists>
+                </file>
+            </activation>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>false</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- Generic Linux Profile (fallback) -->
+        <profile>
+            <id>linux-generic</id>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>false</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>true</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- App Image Profile (cross-platform) -->
+        <profile>
+            <id>app-image</id>
+            <properties>
+                <skip.windows>true</skip.windows>
+                <skip.windows.exe>true</skip.windows.exe>
+                <skip.macos>true</skip.macos>
+                <skip.macos.pkg>true</skip.macos.pkg>
+                <skip.ubuntu>true</skip.ubuntu>
+                <skip.fedora>true</skip.fedora>
+                <skip.app.image>false</skip.app.image>
+            </properties>
+        </profile>
+
+        <!-- All Installers Profile (for CI/CD) -->
+        <profile>
+            <id>all-installers</id>
+            <properties>
+                <skip.windows>false</skip.windows>
+                <skip.windows.exe>false</skip.windows.exe>
+                <skip.macos>false</skip.macos>
+                <skip.macos.pkg>false</skip.macos.pkg>
+                <skip.ubuntu>false</skip.ubuntu>
+                <skip.fedora>false</skip.fedora>
+                <skip.app.image>false</skip.app.image>
+            </properties>
+        </profile>
+    </profiles>
 </project>
