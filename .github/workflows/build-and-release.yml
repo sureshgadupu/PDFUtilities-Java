@@ -96,7 +96,8 @@ jobs:
           sudo rpm -ivh jdk-24_linux-x64_bin.rpm
           wget https://downloads.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
           tar -xvzf apache-maven-3.9.11-bin.tar.gz -C /opt
-          export PATH=/opt/apache-maven-3.9.11/bin:$PATH
+        env:
+          PATH: /opt/apache-maven-3.9.11/bin:$PATH
       - name: Set JAVA_HOME
         run: |
           export JAVA_HOME=/usr/java/latest
