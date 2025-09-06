@@ -96,7 +96,9 @@ jobs:
       - name: Set JAVA_HOME
         run: |
           export JAVA_HOME=/usr/java/latest
+          export PATH=$JAVA_HOME/bin:$PATH
           echo "JAVA_HOME=$JAVA_HOME"
+          echo "PATH=$PATH"
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Debug Java Version
