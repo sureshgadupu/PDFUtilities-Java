@@ -2,7 +2,7 @@ name: Build and Release with jpackage
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -14,8 +14,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '24'
+          distribution: "temurin"
+          java-version: "24"
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -43,8 +43,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '24'
+          distribution: "temurin"
+          java-version: "24"
       - name: Build with Maven
         run: mvn clean package
       - name: Run jpackage (macOS)
@@ -57,31 +57,31 @@ jobs:
           name: PDF-Utilities-Installer-macOS
           path: installers/PDF Utilities/bin/*
 
-build-windows:
-  runs-on: windows-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '24'
-    - name: Debug Environment
-      run: |
-        echo "JAVA_HOME=$JAVA_HOME"
-        java -version
-        where java
-    - name: Build with Maven
-      run: mvn clean package
-    - name: Run jpackage (Windows)
-      run: |
-        package-app.bat
-    - name: Upload installer artifact (Windows)
-      uses: actions/upload-artifact@v4
-      with:
-        name: PDF-Utilities-Installer-Windows
-        path: installers/PDF Utilities/bin/*
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "24"
+      - name: Debug Environment
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          where java
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Run jpackage (Windows)
+        run: |
+          package-app.bat
+      - name: Upload installer artifact (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Installer-Windows
+          path: installers/PDF Utilities/bin/*
 
   build-fedora:
     runs-on: ubuntu-latest
@@ -106,4 +106,4 @@ build-windows:
         uses: actions/upload-artifact@v4
         with:
           name: PDF-Utilities-Installer-Fedora
-          path: installers/PDF Utilities/bin/*  
+          path: installers/PDF Utilities/bin/*
