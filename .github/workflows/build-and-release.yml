@@ -88,30 +88,41 @@ jobs:
     container:
       image: fedora:latest
     steps:
-      - name: Install dependencies
+      - name: Install system dependencies
+        shell: bash
         run: |
-          dnf install -y git wget
+          dnf update -y
+          dnf install -y git wget which findutils
+      - name: Install Java and Maven
+        shell: bash
+        run: |
           dnf remove -y java-21-openjdk java-21-openjdk-headless
           wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.rpm
-          sudo rpm -ivh jdk-24_linux-x64_bin.rpm
+          rpm -ivh jdk-24_linux-x64_bin.rpm
           wget https://downloads.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
           tar -xvzf apache-maven-3.9.11-bin.tar.gz -C /opt
-        env:
-          PATH: /opt/apache-maven-3.9.11/bin:$PATH
+          export PATH=/opt/apache-maven-3.9.11/bin:$PATH
+          echo "PATH=$PATH" >> $GITHUB_ENV
       - name: Set JAVA_HOME
+        shell: bash
         run: |
           export JAVA_HOME=/usr/java/latest
-          export PATH=$JAVA_HOME/bin:$PATH
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "PATH=$PATH"
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Debug Java Version
+        shell: bash
         run: |
           echo "JAVA_HOME=$JAVA_HOME"
           java -version
+          mvn -version
+
       - name: Build with Maven
-        run: JAVA_HOME=$JAVA_HOME mvn clean package -X
+        shell: bash
+        run: mvn clean package -X
       - name: Run jpackage (Fedora)
         run: |
           chmod +x package-app.sh
