@@ -76,7 +76,7 @@ jobs:
         run: mvn clean package
       - name: Run jpackage (Windows)
         run: |
-          package-app.bat
+          cmd /c package-app.bat
       - name: Upload installer artifact (Windows)
         uses: actions/upload-artifact@v4
         with:
