@@ -89,7 +89,7 @@ jobs:
       image: fedora:latest
     steps:
       - name: Install dependencies
-        run: dnf install -y git maven java-21-openjdk-devel
+        run: dnf install -y git maven java-latest-openjdk-devel
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Debug Java Version
