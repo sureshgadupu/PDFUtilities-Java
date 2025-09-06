@@ -106,7 +106,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME"
           java -version
       - name: Build with Maven
-        run: mvn clean package -X
+        run: JAVA_HOME=$JAVA_HOME mvn clean package -X
       - name: Run jpackage (Fedora)
         run: |
           chmod +x package-app.sh
