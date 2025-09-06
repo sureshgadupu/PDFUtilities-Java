@@ -90,10 +90,13 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y git maven wget
+          dnf install -y git wget
           dnf remove -y java-21-openjdk java-21-openjdk-headless
           wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.rpm
           sudo rpm -ivh jdk-24_linux-x64_bin.rpm
+          wget https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+          tar -xvzf apache-maven-3.9.9-bin.tar.gz -C /opt
+          export PATH=/opt/apache-maven-3.9.9/bin:$PATH
       - name: Set JAVA_HOME
         run: |
           export JAVA_HOME=/usr/java/latest
