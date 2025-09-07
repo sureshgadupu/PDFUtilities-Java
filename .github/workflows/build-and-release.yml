@@ -98,11 +98,11 @@ jobs:
           path: installers/PDF Utilities/bin/*
       - name: Debug Artifact Path
         run: |
-          if [ -d "installers/PDF Utilities/bin/" ]; then
-            ls -R installers/PDF Utilities/bin/
-          else
-            echo "Directory does not exist: installers/PDF Utilities/bin/"
-          fi
+          if (Test-Path "installers/PDF Utilities/bin/") {
+            Get-ChildItem -Recurse "installers/PDF Utilities/bin/"
+          } else {
+            Write-Host "Directory does not exist: installers/PDF Utilities/bin/"
+          }
 
 # Commenting out the Fedora build action as it is failing continuously. This will be fixed later.
 #  build-fedora:
