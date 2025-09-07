@@ -35,7 +35,12 @@ jobs:
           name: PDF-Utilities-Installer-Linux
           path: installers/PDF Utilities/bin/*
       - name: Debug Artifact Path
-        run: ls -R installers/PDF Utilities/bin/
+        run: |
+          if [ -d "installers/PDF Utilities/bin/" ]; then
+            ls -R installers/PDF Utilities/bin/
+          else
+            echo "Directory does not exist: installers/PDF Utilities/bin/"
+          fi
 
   build-macos:
     runs-on: macos-latest
@@ -59,7 +64,12 @@ jobs:
           name: PDF-Utilities-Installer-macOS
           path: installers/PDF Utilities/bin/*
       - name: Debug Artifact Path
-        run: ls -R installers/PDF Utilities/bin/
+        run: |
+          if [ -d "installers/PDF Utilities/bin/" ]; then
+            ls -R installers/PDF Utilities/bin/
+          else
+            echo "Directory does not exist: installers/PDF Utilities/bin/"
+          fi
 
   build-windows:
     runs-on: windows-latest
@@ -87,7 +97,12 @@ jobs:
           name: PDF-Utilities-Installer-Windows
           path: installers/PDF Utilities/bin/*
       - name: Debug Artifact Path
-        run: ls -R installers/PDF Utilities/bin/*
+        run: |
+          if [ -d "installers/PDF Utilities/bin/" ]; then
+            ls -R installers/PDF Utilities/bin/
+          else
+            echo "Directory does not exist: installers/PDF Utilities/bin/"
+          fi
 # Commenting out the Fedora build action as it is failing continuously. This will be fixed later.
 #  build-fedora:
 #    runs-on: ubuntu-latest
