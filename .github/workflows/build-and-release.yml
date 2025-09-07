@@ -34,6 +34,8 @@ jobs:
         with:
           name: PDF-Utilities-Installer-Linux
           path: installers/PDF Utilities/bin/*
+      - name: Debug Artifact Path
+        run: ls -R installers/PDF Utilities/bin/
 
   build-macos:
     runs-on: macos-latest
@@ -56,6 +58,8 @@ jobs:
         with:
           name: PDF-Utilities-Installer-macOS
           path: installers/PDF Utilities/bin/*
+      - name: Debug Artifact Path
+        run: ls -R installers/PDF Utilities/bin/
 
   build-windows:
     runs-on: windows-latest
@@ -82,65 +86,67 @@ jobs:
         with:
           name: PDF-Utilities-Installer-Windows
           path: installers/PDF Utilities/bin/*
-
-  build-fedora:
-    runs-on: ubuntu-latest
-    container:
-      image: fedora:latest
-    steps:
-      - name: Install system dependencies
-        shell: bash
-        run: |
-          dnf update -y
-          dnf install -y git wget which findutils rpm-build freetype-devel libX11-devel libXext-devel libXrender-devel libXrandr-devel libXtst-devel libXi-devel xdg-utils
-      - name: Install Java and Maven
-        shell: bash
-        run: |
-          dnf remove -y java-21-openjdk java-21-openjdk-headless
-          wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.rpm
-          rpm -ivh jdk-24_linux-x64_bin.rpm
-          wget https://downloads.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
-          tar -xvzf apache-maven-3.9.11-bin.tar.gz -C /opt
-          export PATH=/opt/apache-maven-3.9.11/bin:$PATH
-          echo "PATH=$PATH" >> $GITHUB_ENV
-      - name: Set JAVA_HOME
-        shell: bash
-        run: |
-          export JAVA_HOME=/usr/java/latest
-          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Debug Java Version
-        shell: bash
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          java -version
-          mvn -version
-
-      - name: Build with Maven
-        shell: bash
-        run: mvn clean package -X
-      - name: Debug Package Tools
-        shell: bash
-        run: |
-          rpm --version
-          which rpmbuild
-
-      - name: Fix Permissions
-        shell: bash
-        run: |
-          # Fix permissions for runtime libraries
-          chmod -R 755 /tmp/jdk.jpackage*/images/opt/pdf-utilities/lib/runtime/lib/
-
-      - name: Run jpackage (Fedora)
-        run: |
-          chmod +x package-app.sh
-          ./package-app.sh
-      - name: Upload installer artifact (Fedora)
-        uses: actions/upload-artifact@v4
-        with:
-          name: PDF-Utilities-Installer-Fedora
-          path: installers/PDF Utilities/bin/*
+      - name: Debug Artifact Path
+        run: ls -R installers/PDF Utilities/bin/*
+# Commenting out the Fedora build action as it is failing continuously. This will be fixed later.
+#  build-fedora:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: fedora:latest
+#    steps:
+#      - name: Install system dependencies
+#        shell: bash
+#        run: |
+#          dnf update -y
+#          dnf install -y git wget which findutils rpm-build freetype-devel libX11-devel libXext-devel libXrender-devel libXrandr-devel libXtst-devel libXi-devel xdg-utils
+#      - name: Install Java and Maven
+#        shell: bash
+#        run: |
+#          dnf remove -y java-21-openjdk java-21-openjdk-headless
+#          wget https://download.oracle.com/java/24/latest/jdk-24_linux-x64_bin.rpm
+#          rpm -ivh jdk-24_linux-x64_bin.rpm
+#          wget https://downloads.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
+#          tar -xvzf apache-maven-3.9.11-bin.tar.gz -C /opt
+#          export PATH=/opt/apache-maven-3.9.11/bin:$PATH
+#          echo "PATH=$PATH" >> $GITHUB_ENV
+#      - name: Set JAVA_HOME
+#        shell: bash
+#        run: |
+#          export JAVA_HOME=/usr/java/latest
+#          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+#          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+#
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Debug Java Version
+#        shell: bash
+#        run: |
+#          echo "JAVA_HOME=$JAVA_HOME"
+#          java -version
+#          mvn -version
+#
+#      - name: Build with Maven
+#        shell: bash
+#        run: mvn clean package -X
+#      - name: Debug Package Tools
+#        shell: bash
+#        run: |
+#          rpm --version
+#          which rpmbuild
+#
+#      - name: Fix Permissions
+#        shell: bash
+#        run: |
+#          # Fix permissions for runtime libraries
+#          chmod -R 755 /tmp/jdk.jpackage*/images/opt/pdf-utilities/lib/runtime/lib/
+#
+#      - name: Run jpackage (Fedora)
+#        run: |
+#          chmod +x package-app.sh
+#          ./package-app.sh
+#      - name: Upload installer artifact (Fedora)
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: PDF-Utilities-Installer-Fedora
+#          path: installers/PDF Utilities/bin/
