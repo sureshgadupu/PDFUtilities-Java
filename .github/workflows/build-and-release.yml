@@ -92,7 +92,7 @@ jobs:
         shell: bash
         run: |
           dnf update -y
-          dnf install -y git wget which findutils
+          dnf install -y git wget which findutils rpm-build
       - name: Install Java and Maven
         shell: bash
         run: |
@@ -123,6 +123,11 @@ jobs:
       - name: Build with Maven
         shell: bash
         run: mvn clean package -X
+      - name: Debug Package Tools
+        shell: bash
+        run: |
+          rpm --version
+          which rpmbuild
       - name: Run jpackage (Fedora)
         run: |
           chmod +x package-app.sh
