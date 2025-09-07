@@ -92,7 +92,7 @@ jobs:
         shell: bash
         run: |
           dnf update -y
-          dnf install -y git wget which findutils rpm-build
+          dnf install -y git wget which findutils rpm-build freetype-devel libX11-devel libXext-devel libXrender-devel libXrandr-devel libXtst-devel libXi-devel xdg-utils
       - name: Install Java and Maven
         shell: bash
         run: |
@@ -128,6 +128,13 @@ jobs:
         run: |
           rpm --version
           which rpmbuild
+
+      - name: Fix Permissions
+        shell: bash
+        run: |
+          # Fix permissions for runtime libraries
+          chmod -R 755 /tmp/jdk.jpackage*/images/opt/pdf-utilities/lib/runtime/lib/
+
       - name: Run jpackage (Fedora)
         run: |
           chmod +x package-app.sh
