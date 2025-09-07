@@ -103,6 +103,7 @@ jobs:
           else
             echo "Directory does not exist: installers/PDF Utilities/bin/"
           fi
+
 # Commenting out the Fedora build action as it is failing continuously. This will be fixed later.
 #  build-fedora:
 #    runs-on: ubuntu-latest
