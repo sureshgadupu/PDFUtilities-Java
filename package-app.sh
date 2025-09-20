@@ -23,14 +23,14 @@ echo "jpackage found."
 # Create a clean staging directory
 echo "Creating clean staging directory..."
 mkdir -p staging
-cp target/pdf-utilities-app-1.0.0.0.jar staging/
+cp target/pdf-utilities-app-1.0.0.jar staging/
 
 # Run jpackage to create installer
 echo "Creating native installer with jpackage..."
 jpackage \
   --input staging \
   --name "PDF Utilities" \
-  --main-jar pdf-utilities-app-1.0.0.0.jar \
+  --main-jar pdf-utilities-app-1.0.0.jar \
   --type pkg \
   --dest target/installers
 

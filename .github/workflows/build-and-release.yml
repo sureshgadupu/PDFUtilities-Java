@@ -29,13 +29,13 @@ jobs:
         run: |
           # Create clean staging directory
           mkdir -p staging
-          cp target/pdf-utilities-app-1.0.0.0.jar staging/
+          cp target/pdf-utilities-app-1.0.0.jar staging/
 
           # Run jpackage
           jpackage \
             --input staging \
             --name "PDF Utilities" \
-            --main-jar pdf-utilities-app-1.0.0.0.jar \
+            --main-jar pdf-utilities-app-1.0.0.jar \
             --type deb \
             --dest target/installers \
             --linux-shortcut
@@ -68,13 +68,13 @@ jobs:
         run: |
           # Create clean staging directory
           mkdir -p staging
-          cp target/pdf-utilities-app-1.0.0.0.jar staging/
+          cp target/pdf-utilities-app-1.0.0.jar staging/
 
           # Run jpackage
           jpackage \
             --input staging \
             --name "PDF Utilities" \
-            --main-jar pdf-utilities-app-1.0.0.0.jar \
+            --main-jar pdf-utilities-app-1.0.0.jar \
             --type pkg \
             --dest target/installers \
             --mac-package-name "PDF Utilities"
@@ -112,13 +112,13 @@ jobs:
         run: |
           # Create clean staging directory
           New-Item -ItemType Directory -Force -Path staging
-          Copy-Item "target\pdf-utilities-app-1.0.0.0.jar" -Destination "staging\"
+          Copy-Item "target\pdf-utilities-app-1.0.0.jar" -Destination "staging\"
 
           # Run jpackage
           jpackage `
             --input staging `
             --name "PDF Utilities" `
-            --main-jar pdf-utilities-app-1.0.0.0.jar `
+            --main-jar pdf-utilities-app-1.0.0.jar `
             --type msi `
             --dest target/installers `
             --win-dir-chooser `
