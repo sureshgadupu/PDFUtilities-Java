@@ -20,9 +20,19 @@ if ! command -v jpackage &> /dev/null; then
 fi
 echo "jpackage found."
 
-# Clean, package, and create installer with Maven
-echo "Cleaning, packaging, and creating installer with Maven..."
-mvn clean install
+# Create a clean staging directory
+echo "Creating clean staging directory..."
+mkdir -p staging
+cp target/pdf-utilities-app-1.0.0.0.jar staging/
+
+# Run jpackage to create installer
+echo "Creating native installer with jpackage..."
+jpackage \
+  --input staging \
+  --name "PDF Utilities" \
+  --main-jar pdf-utilities-app-1.0.0.0.jar \
+  --type pkg \
+  --dest target/installers
 
 if [ $? -eq 0 ]; then
     echo "Native installer created successfully!"
