@@ -27,6 +27,7 @@
         <app.version>1.0.0</app.version>
         <app.main.class>com.pdfutilities.app.Main</app.main.class>
         <app.modules>javafx.controls,javafx.fxml</app.modules>
+        <staging.directory>${project.build.directory}/staging</staging.directory>
     </properties>
 
     <dependencies>
@@ -164,29 +165,23 @@
                 </executions>
             </plugin>
 
-            <!-- Maven Shade Plugin for creating fat JAR -->
+            <!-- Maven JAR Plugin for normal JAR packaging -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.pdfutilities.app.Main</mainClass>
-                                    <manifestEntries>
-                                        <Main-Class>com.pdfutilities.app.Main</Main-Class>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.pdfutilities.app.Main</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <Main-Class>com.pdfutilities.app.Main</Main-Class>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
 
             <!-- Exec Maven Plugin for jpackage -->
@@ -208,7 +203,7 @@
                             <skip>${skip.windows}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
@@ -222,7 +217,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/windows</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -261,7 +256,7 @@
                             <skip>${skip.windows.exe}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
@@ -275,7 +270,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/windows</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -309,7 +304,7 @@
                             <skip>${skip.macos}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
@@ -323,7 +318,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/macos</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -363,7 +358,7 @@
                             <skip>${skip.macos.pkg}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
@@ -377,7 +372,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/macos</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -406,7 +401,7 @@
                             <skip>${skip.ubuntu}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>pdf-utilities</argument> <!-- lowercase for debian -->
                                 <argument>--app-version</argument>
@@ -420,7 +415,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/ubuntu</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -462,7 +457,7 @@
                             <skip>${skip.fedora}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>pdf-utilities</argument>
                                 <argument>--app-version</argument>
@@ -476,7 +471,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/fedora</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--description</argument>
@@ -518,7 +513,7 @@
                             <skip>${skip.app.image}</skip>
                             <arguments>
                                 <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
+                                <argument>${staging.directory}</argument>
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
@@ -532,7 +527,7 @@
                                 <argument>--dest</argument>
                                 <argument>${project.build.directory}/installers/app-image</argument>
                                 <argument>--module-path</argument>
-                                <argument>${project.build.directory}/lib</argument>
+                                <argument>${staging.directory}/lib</argument>
                                 <argument>--add-modules</argument>
                                 <argument>javafx.controls,javafx.fxml</argument>
                                 <argument>--java-options</argument>
@@ -610,72 +605,30 @@
                             <exportAntProperties>true</exportAntProperties>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-
-            <!-- Profile-based OS detection and configuration -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
                     <execution>
-                        <id>detect-os</id>
-                        <phase>validate</phase>
+                        <id>create-staging</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
                         <configuration>
                             <target>
-                                <condition property="isWindows">
-                                    <os family="windows"/>
-                                </condition>
-                                <condition property="isMac">
-                                    <os family="mac"/>
-                                </condition>
-                                <condition property="isUnix">
-                                    <os family="unix"/>
-                                </condition>
-                                <condition property="isLinux">
-                                    <and>
-                                        <os family="unix"/>
-                                        <not>
-                                            <os family="mac"/>
-                                        </not>
-                                    </and>
-                                </condition>
-
-                                <!-- Set skip properties based on OS -->
-                                <condition property="skip.windows" value="false" else="true">
-                                    <isset property="isWindows"/>
-                                </condition>
-                                <condition property="skip.windows.exe" value="true" else="true">
-                                    <isset property="isWindows"/>
-                                </condition>
-                                <condition property="skip.macos" value="false" else="true">
-                                    <isset property="isMac"/>
-                                </condition>
-                                <condition property="skip.macos.pkg" value="true" else="true">
-                                    <isset property="isMac"/>
-                                </condition>
-                                <condition property="skip.ubuntu" value="false" else="true">
-                                    <isset property="isLinux"/>
-                                </condition>
-                                <condition property="skip.fedora" value="true" else="true">
-                                    <isset property="isLinux"/>
-                                </condition>
-                                <condition property="skip.app.image" value="true" else="false">
-                                    <or>
-                                        <isset property="isWindows"/>
-                                        <isset property="isMac"/>
-                                        <isset property="isLinux"/>
-                                    </or>
-                                </condition>
-
-                                <echo message="Detected OS: Windows=${isWindows}, Mac=${isMac}, Linux=${isLinux}"/>
-                                <echo message="Skip flags: windows=${skip.windows}, macos=${skip.macos}, ubuntu=${skip.ubuntu}, fedora=${skip.fedora}"/>
+                                <!-- Clean and create staging directory -->
+                                <delete dir="${staging.directory}"/>
+                                <mkdir dir="${staging.directory}"/>
+                                
+                                <!-- Copy main JAR -->
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar" 
+                                      tofile="${staging.directory}/${project.build.finalName}.jar"/>
+                                
+                                <!-- Copy dependencies to staging/lib -->
+                                <mkdir dir="${staging.directory}/lib"/>
+                                <copy todir="${staging.directory}/lib">
+                                    <fileset dir="${project.build.directory}/lib"/>
+                                </copy>
+                                
+                                <echo message="Staging directory created at: ${staging.directory}"/>
                             </target>
-                            <exportAntProperties>true</exportAntProperties>
                         </configuration>
                     </execution>
                 </executions>
