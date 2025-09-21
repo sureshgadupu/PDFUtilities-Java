@@ -104,6 +104,42 @@ jobs:
             Write-Host "Directory does not exist: target/installers/"
           }
 
+  build-linux-app-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "24"
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: mvn clean package
+      - name: Create Linux App Image
+        run: |
+          mvn exec:exec@jpackage-app-image -Dskip.app.image=false
+      - name: Upload App Image artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-AppImage
+          path: target/installers/app-image/*
+      - name: Debug App Image Path
+        run: |
+          if [ -d "target/installers/app-image/" ]; then
+            ls -R target/installers/app-image/
+            echo "App image created successfully!"
+          else
+            echo "Directory does not exist: target/installers/app-image/"
+          fi
+
 # Commenting out the Fedora build action as it is failing continuously. This will be fixed later.
 #  build-fedora:
 #    runs-on: ubuntu-latest
