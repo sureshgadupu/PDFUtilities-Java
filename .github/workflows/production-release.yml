@@ -100,11 +100,12 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           # Update main version
-          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" pom.xml
+          sed -i.bak "s/<version>.*<\\/version>/<version>$VERSION<\\/version>/" pom.xml
           # Update app.version property
-          sed -i "s/<app\.version>.*<\/app\.version>/<app.version>$VERSION<\/app.version>/" pom.xml
+          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml
           # Update all jpackage app-version arguments
-          sed -i "s/--app-version [0-9.]*/--app-version $VERSION/g" pom.xml
+          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml
+          rm -f pom.xml.bak
           
           echo "Updated version to $VERSION in pom.xml"
 
@@ -197,11 +198,12 @@ jobs:
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
           # Update main version
-          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" pom.xml
+          sed -i.bak "s/<version>.*<\\/version>/<version>$VERSION<\\/version>/" pom.xml
           # Update app.version property
-          sed -i "s/<app\.version>.*<\/app\.version>/<app.version>$VERSION<\/app.version>/" pom.xml
+          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml
           # Update all jpackage app-version arguments
-          sed -i "s/--app-version [0-9.]*/--app-version $VERSION/g" pom.xml
+          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml
+          rm -f pom.xml.bak
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
@@ -382,9 +384,10 @@ jobs:
           echo "Updating development version to $NEW_VERSION"
           
           # Update version in pom.xml for next development cycle
-          sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" pom.xml
-          sed -i "s/<app\.version>.*<\/app\.version>/<app.version>$NEW_VERSION<\/app.version>/" pom.xml
-          sed -i "s/--app-version [0-9.]*/--app-version $NEW_VERSION/g" pom.xml
+          sed -i.bak "s/<version>.*<\\/version>/<version>$NEW_VERSION<\\/version>/" pom.xml
+          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$NEW_VERSION<\\/app.version>/" pom.xml
+          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $NEW_VERSION/g" pom.xml
+          rm -f pom.xml.bak
           
           # Commit and push the version update
           git config --local user.email "action@github.com"
