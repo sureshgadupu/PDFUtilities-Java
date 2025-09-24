@@ -156,8 +156,8 @@ jobs:
             echo "⚠️  Failed to update app.version property in pom.xml"
           fi
           
-          # Update all jpackage app-version arguments
-          if sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml; then
+          # Update all jpackage app-version arguments (be more specific to avoid matching plugin versions)
+          if sed -i.bak "s/--app-version [0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9.-]\+\)\?/\--app-version $VERSION/g" pom.xml; then
             echo "✅ Updated jpackage app-version arguments in pom.xml"
           else
             echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
@@ -263,24 +263,17 @@ jobs:
           echo ""
           echo "=== Maven Effective POM (plugins section) ==="
           mvn help:effective-pom -Doutput=effective-pom.xml
-          grep -A 20 -B 5 "maven-antrun-plugin" effective-pom.xml || echo "maven-antrun-plugin not found in effective POM"
+          ${{ matrix.platform == 'windows' && 'if (Test-Path effective-pom.xml) { Get-Content effective-pom.xml | Select-String -Pattern "maven-antrun-plugin" -Context 5 -CaseSensitive:$false; if (!$?) { echo "maven-antrun-plugin not found in effective POM" } }' || 'grep -A 20 -B 5 "maven-antrun-plugin" effective-pom.xml || echo "maven-antrun-plugin not found in effective POM"' }}
           echo ""
           echo "=== Maven Dependency Tree for antrun plugin ==="
           mvn dependency:tree -Dincludes=org.apache.maven.plugins:maven-antrun-plugin | head -20
           echo ""
           echo "=== Maven Local Repository Status ==="
           echo "Maven antrun plugin in local repo:"
-          find ~/.m2/repository -name "*antrun*" -type d | head -10
+          ${{ matrix.platform == 'windows' && 'Get-ChildItem -Path "~/.m2/repository" -Name "*antrun*" -Directory -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10' || 'find ~/.m2/repository -name "*antrun*" -type d | head -10' }}
           echo ""
           echo "=== Maven Settings ==="
-          if [ -f ~/.m2/settings.xml ]; then
-            echo "Maven settings.xml exists:"
-            ls -la ~/.m2/settings.xml
-            echo "Settings content:"
-            cat ~/.m2/settings.xml
-          else
-            echo "No Maven settings.xml found"
-          fi
+          ${{ matrix.platform == 'windows' && 'if (Test-Path "~/.m2/settings.xml") { echo "Maven settings.xml exists:"; Get-Item "~/.m2/settings.xml" | Format-Table -Property Name, LastWriteTime, Length; echo "Settings content:"; Get-Content "~/.m2/settings.xml" } else { echo "No Maven settings.xml found" }' || 'if [ -f ~/.m2/settings.xml ]; then echo "Maven settings.xml exists:"; ls -la ~/.m2/settings.xml; echo "Settings content:"; cat ~/.m2/settings.xml; else echo "No Maven settings.xml found"; fi' }}
           echo ""
           echo "=== Maven Plugin List ==="
           mvn help:all-profiles | head -30
@@ -321,8 +314,8 @@ jobs:
             echo "⚠️  Failed to update app.version property in pom.xml"
           fi
           
-          # Update all jpackage app-version arguments
-          if sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml; then
+          # Update all jpackage app-version arguments (be more specific to avoid matching plugin versions)
+          if sed -i.bak "s/--app-version [0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9.-]\+\)\?/\--app-version $VERSION/g" pom.xml; then
             echo "✅ Updated jpackage app-version arguments in pom.xml"
           else
             echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
