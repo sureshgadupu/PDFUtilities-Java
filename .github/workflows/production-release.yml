@@ -133,38 +133,78 @@ jobs:
       - name: Update version in pom.xml
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
-          echo "Updating pom.xml version to $VERSION..."
-          
+
+          echo "Updating pom.xml version to $VERSION using temp file approach..."
+
           # Check if pom.xml exists
           if [ ! -f "pom.xml" ]; then
             echo "❌ pom.xml not found"
             exit 1
           fi
-          
-          # Update main version
-          if sed -i.bak "s/<version>[^<]*<\\/version>/<version>$VERSION<\\/version>/" pom.xml; then
-            echo "✅ Updated main version in pom.xml"
+
+          # Create a backup
+          cp pom.xml pom.xml.backup
+
+          # Use a more targeted approach with temporary files
+          # Update main project version using a more specific pattern that only matches the project version
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^    <version>1\.0\.0<\/version>/) {
+                  print "    <version>" version "</version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Update app.version property specifically (not other properties or plugin versions)
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>/) {
+                  print "        <app.version>" version "</app.version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Update hardcoded app-version arguments in jpackage plugin configurations
+          # Use a more specific pattern to only match the app-version arguments, not plugin versions
+          awk -v version="$VERSION" '
+          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
+          {
+              if ($0 ~ /<plugin>/) {
+                  in_plugin = 1
+              } else if (in_plugin && $0 ~ /<\/plugin>/) {
+                  in_plugin = 0
+                  in_exec_plugin = 0
+              } else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) {
+                  in_exec_plugin = 1
+              } else if (in_exec_plugin && $0 ~ /<arguments>/) {
+                  in_arguments = 1
+              } else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) {
+                  in_arguments = 0
+              } else if (in_exec_plugin && in_arguments && $0 ~ /--app-version<\/argument>/) {
+                  print $0
+                  getline
+                  print "                                <argument>" version "</argument>"
+                  next
+              }
+              print $0
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Verify the changes
+          if grep -q "<version>$VERSION</version>" pom.xml && \
+             grep -q "<app.version>$VERSION</app.version>" pom.xml && \
+             grep -q "--app-version</argument>" pom.xml && \
+             grep -q "<argument>$VERSION</argument>" pom.xml; then
+              echo "✅ Version update completed for $VERSION"
           else
-            echo "⚠️  Failed to update main version in pom.xml"
+              echo "❌ Version update verification failed, restoring backup"
+              mv pom.xml.backup pom.xml
+              exit 1
           fi
-          
-          # Update app.version property
-          if sed -i.bak "s/<app\\.version>[^<]*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml; then
-            echo "✅ Updated app.version property in pom.xml"
-          else
-            echo "⚠️  Failed to update app.version property in pom.xml"
-          fi
-          
-          # Update all jpackage app-version arguments (be more specific to avoid matching plugin versions)
-          if sed -i.bak "s/--app-version [0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9.-]\+\)\?/\--app-version $VERSION/g" pom.xml; then
-            echo "✅ Updated jpackage app-version arguments in pom.xml"
-          else
-            echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
-          fi
-          
-          rm -f pom.xml.bak
-          echo "✅ Version update completed for $VERSION"
+
+          # Clean up backup
+          rm -f pom.xml.backup
 
       - name: Generate release notes
         id: release_notes
@@ -291,38 +331,78 @@ jobs:
       - name: Update version in pom.xml
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
-          
-          echo "Updating pom.xml version to $VERSION for ${{ matrix.platform }}..."
-          
+
+          echo "Updating pom.xml version to $VERSION for ${{ matrix.platform }} using temp file approach..."
+
           # Check if pom.xml exists
           if [ ! -f "pom.xml" ]; then
             echo "❌ pom.xml not found"
             exit 1
           fi
-          
-          # Update main version
-          if sed -i.bak "s/<version>[^<]*<\\/version>/<version>$VERSION<\\/version>/" pom.xml; then
-            echo "✅ Updated main version in pom.xml"
+
+          # Create a backup
+          cp pom.xml pom.xml.backup
+
+          # Use a more targeted approach with temporary files
+          # Update main project version using a more specific pattern that only matches the project version
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^    <version>1\.0\.0<\/version>/) {
+                  print "    <version>" version "</version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Update app.version property specifically (not other properties or plugin versions)
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>/) {
+                  print "        <app.version>" version "</app.version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Update hardcoded app-version arguments in jpackage plugin configurations
+          # Use a more specific pattern to only match the app-version arguments, not plugin versions
+          awk -v version="$VERSION" '
+          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
+          {
+              if ($0 ~ /<plugin>/) {
+                  in_plugin = 1
+              } else if (in_plugin && $0 ~ /<\/plugin>/) {
+                  in_plugin = 0
+                  in_exec_plugin = 0
+              } else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) {
+                  in_exec_plugin = 1
+              } else if (in_exec_plugin && $0 ~ /<arguments>/) {
+                  in_arguments = 1
+              } else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) {
+                  in_arguments = 0
+              } else if (in_exec_plugin && in_arguments && $0 ~ /--app-version<\/argument>/) {
+                  print $0
+                  getline
+                  print "                                <argument>" version "</argument>"
+                  next
+              }
+              print $0
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Verify the changes
+          if grep -q "<version>$VERSION</version>" pom.xml && \
+             grep -q "<app.version>$VERSION</app.version>" pom.xml && \
+             grep -q "--app-version</argument>" pom.xml && \
+             grep -q "<argument>$VERSION</argument>" pom.xml; then
+              echo "✅ Version update completed for $VERSION"
           else
-            echo "⚠️  Failed to update main version in pom.xml"
+              echo "❌ Version update verification failed, restoring backup"
+              mv pom.xml.backup pom.xml
+              exit 1
           fi
-          
-          # Update app.version property
-          if sed -i.bak "s/<app\\.version>[^<]*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml; then
-            echo "✅ Updated app.version property in pom.xml"
-          else
-            echo "⚠️  Failed to update app.version property in pom.xml"
-          fi
-          
-          # Update all jpackage app-version arguments (be more specific to avoid matching plugin versions)
-          if sed -i.bak "s/--app-version [0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9.-]\+\)\?/\--app-version $VERSION/g" pom.xml; then
-            echo "✅ Updated jpackage app-version arguments in pom.xml"
-          else
-            echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
-          fi
-          
-          rm -f pom.xml.bak
-          echo "✅ Version update completed for $VERSION"
+
+          # Clean up backup
+          rm -f pom.xml.backup
 
       - name: Build with Maven
         run: |
@@ -488,11 +568,55 @@ jobs:
           
           echo "Updating development version to $NEW_VERSION"
           
-          # Update version in pom.xml for next development cycle
-          sed -i.bak "s/<version>.*<\\/version>/<version>$NEW_VERSION<\\/version>/" pom.xml
-          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$NEW_VERSION<\\/app.version>/" pom.xml
-          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $NEW_VERSION/g" pom.xml
-          rm -f pom.xml.bak
+          # Update version in pom.xml for next development cycle using targeted replacements
+          cp pom.xml pom.xml.backup
+
+          # 1) Update top-level project <version> with exact indentation to avoid plugin versions
+          awk -v version="$NEW_VERSION" '
+          {
+              if ($0 ~ /^    <version>.*<\/version>$/) {
+                  print "    <version>" version "</version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # 2) Update <app.version> property only
+          awk -v version="$NEW_VERSION" '
+          {
+              if ($0 ~ /^        <app\.version>.*<\/app\.version>$/) {
+                  print "        <app.version>" version "</app.version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # 3) Update jpackage --app-version argument values only inside exec-maven-plugin
+          awk -v version="$NEW_VERSION" '
+          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
+          {
+              if ($0 ~ /<plugin>/) {
+                  in_plugin = 1
+              } else if (in_plugin && $0 ~ /<\/plugin>/) {
+                  in_plugin = 0
+                  in_exec_plugin = 0
+              } else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) {
+                  in_exec_plugin = 1
+              } else if (in_exec_plugin && $0 ~ /<arguments>/) {
+                  in_arguments = 1
+              } else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) {
+                  in_arguments = 0
+              } else if (in_exec_plugin && in_arguments && $0 ~ /--app-version<\/argument>/) {
+                  print $0
+                  getline
+                  print "                                <argument>" version "</argument>"
+                  next
+              }
+              print $0
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          # Clean up backup
+          rm -f pom.xml.backup
           
           # Commit and push the version update
           git config --local user.email "action@github.com"
