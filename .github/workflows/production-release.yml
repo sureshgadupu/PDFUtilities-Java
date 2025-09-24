@@ -194,7 +194,7 @@ jobs:
           # Verify the changes
           if grep -q "<version>$VERSION</version>" pom.xml && \
              grep -q "<app.version>$VERSION</app.version>" pom.xml && \
-             grep -q "--app-version</argument>" pom.xml && \
+             grep -q "<argument>--app-version</argument>" pom.xml && \
              grep -q "<argument>$VERSION</argument>" pom.xml; then
               echo "✅ Version update completed for $VERSION"
           else
@@ -392,7 +392,7 @@ jobs:
           # Verify the changes
           if grep -q "<version>$VERSION</version>" pom.xml && \
              grep -q "<app.version>$VERSION</app.version>" pom.xml && \
-             grep -q "--app-version</argument>" pom.xml && \
+             grep -q "<argument>--app-version</argument>" pom.xml && \
              grep -q "<argument>$VERSION</argument>" pom.xml; then
               echo "✅ Version update completed for $VERSION"
           else
