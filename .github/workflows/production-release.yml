@@ -252,6 +252,41 @@ jobs:
           distribution: "temurin"
           java-version: ${{ env.JAVA_VERSION }}
 
+      - name: Debug Maven dependencies and versions
+        run: |
+          echo "=== Maven and Java Environment Debug Info ==="
+          echo "Maven version:"
+          mvn --version
+          echo ""
+          echo "Java version:"
+          java -version
+          echo ""
+          echo "=== Maven Effective POM (plugins section) ==="
+          mvn help:effective-pom -Doutput=effective-pom.xml
+          grep -A 20 -B 5 "maven-antrun-plugin" effective-pom.xml || echo "maven-antrun-plugin not found in effective POM"
+          echo ""
+          echo "=== Maven Dependency Tree for antrun plugin ==="
+          mvn dependency:tree -Dincludes=org.apache.maven.plugins:maven-antrun-plugin | head -20
+          echo ""
+          echo "=== Maven Local Repository Status ==="
+          echo "Maven antrun plugin in local repo:"
+          find ~/.m2/repository -name "*antrun*" -type d | head -10
+          echo ""
+          echo "=== Maven Settings ==="
+          if [ -f ~/.m2/settings.xml ]; then
+            echo "Maven settings.xml exists:"
+            ls -la ~/.m2/settings.xml
+            echo "Settings content:"
+            cat ~/.m2/settings.xml
+          else
+            echo "No Maven settings.xml found"
+          fi
+          echo ""
+          echo "=== Maven Plugin List ==="
+          mvn help:all-profiles | head -30
+          echo ""
+          echo "Debug info collection completed"
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
