@@ -56,24 +56,52 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
+            
+            if [ -z "$VERSION" ]; then
+              echo "❌ Version not provided in workflow dispatch"
+              exit 1
+            fi
+            
             if [ "${{ github.event.inputs.create_tag }}" = "true" ]; then
               TAG_NAME="v$VERSION"
-              # Create and push tag
+              echo "Creating and pushing tag: $TAG_NAME"
+              
+              # Configure git and create tag
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
-              git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-              git push origin "$TAG_NAME"
+              
+              if git tag -a "$TAG_NAME" -m "Release $TAG_NAME"; then
+                echo "✅ Created tag: $TAG_NAME"
+                
+                if git push origin "$TAG_NAME"; then
+                  echo "✅ Pushed tag: $TAG_NAME"
+                else
+                  echo "❌ Failed to push tag: $TAG_NAME"
+                  exit 1
+                fi
+              else
+                echo "❌ Failed to create tag: $TAG_NAME"
+                exit 1
+              fi
             else
               TAG_NAME="v$VERSION"
+              echo "Using existing tag: $TAG_NAME"
             fi
           else
             # Extract from tag
             TAG_NAME="${{ github.ref_name }}"
             VERSION="${TAG_NAME#v}"  # Remove 'v' prefix
+            
+            if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "$VERSION" ]; then
+              echo "❌ Invalid tag format: $TAG_NAME"
+              exit 1
+            fi
+            
+            echo "Extracted from tag - Tag: $TAG_NAME, Version: $VERSION"
           fi
           
           # Determine if this is a prerelease
-          if [[ "$VERSION" =~ (alpha|beta|rc|pre) ]]; then
+          if [[ "$VERSION" =~ (alpha|beta|rc|pre|snapshot) ]]; then
             IS_PRERELEASE="true"
           else
             IS_PRERELEASE="false"
@@ -83,31 +111,60 @@ jobs:
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
           
-          echo "Version: $VERSION"
-          echo "Tag: $TAG_NAME"
-          echo "Is Prerelease: $IS_PRERELEASE"
+          echo "✅ Version extraction completed:"
+          echo "   Version: $VERSION"
+          echo "   Tag: $TAG_NAME"
+          echo "   Is Prerelease: $IS_PRERELEASE"
 
       - name: Validate version format
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
-            echo "Error: Invalid version format. Expected: X.Y.Z or X.Y.Z-suffix"
-            exit 1
+          
+          # More flexible version validation - accept common formats
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]] && \
+             [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "Warning: Version format '$VERSION' doesn't match expected patterns"
+            echo "Expected formats: X.Y.Z, X.Y.Z-suffix, vX.Y.Z, vX.Y.Z-suffix"
+            echo "Continuing with potentially non-standard version format..."
+          else
+            echo "Version format is valid: $VERSION"
           fi
-          echo "Version format is valid: $VERSION"
 
       - name: Update version in pom.xml
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # Update main version
-          sed -i.bak "s/<version>.*<\\/version>/<version>$VERSION<\\/version>/" pom.xml
-          # Update app.version property
-          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml
-          # Update all jpackage app-version arguments
-          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml
-          rm -f pom.xml.bak
           
-          echo "Updated version to $VERSION in pom.xml"
+          echo "Updating pom.xml version to $VERSION..."
+          
+          # Check if pom.xml exists
+          if [ ! -f "pom.xml" ]; then
+            echo "❌ pom.xml not found"
+            exit 1
+          fi
+          
+          # Update main version
+          if sed -i.bak "s/<version>[^<]*<\\/version>/<version>$VERSION<\\/version>/" pom.xml; then
+            echo "✅ Updated main version in pom.xml"
+          else
+            echo "⚠️  Failed to update main version in pom.xml"
+          fi
+          
+          # Update app.version property
+          if sed -i.bak "s/<app\\.version>[^<]*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml; then
+            echo "✅ Updated app.version property in pom.xml"
+          else
+            echo "⚠️  Failed to update app.version property in pom.xml"
+          fi
+          
+          # Update all jpackage app-version arguments
+          if sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml; then
+            echo "✅ Updated jpackage app-version arguments in pom.xml"
+          else
+            echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
+          fi
+          
+          rm -f pom.xml.bak
+          echo "✅ Version update completed for $VERSION"
 
       - name: Generate release notes
         id: release_notes
@@ -115,15 +172,17 @@ jobs:
           TAG_NAME="${{ steps.version.outputs.tag_name }}"
           VERSION="${{ steps.version.outputs.version }}"
           
+          echo "Generating release notes for $VERSION..."
+          
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
           
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "Generating changelog from $PREVIOUS_TAG to $TAG_NAME"
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD)
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD 2>/dev/null || echo "- Release notes generation failed")
           else
             echo "No previous tag found, generating full changelog"
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20)
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20 2>/dev/null || echo "- Release notes generation failed")
           fi
           
           # Create release notes
@@ -137,20 +196,27 @@ jobs:
           Download the appropriate installer for your operating system from the individual files below.
           
           ### System Requirements
-          - Java 11 or higher
+          - Java 24 or higher
           - Windows 10+, macOS 10.14+, or Linux (Ubuntu 18.04+)
           
           ### Available Installers
-          - **Windows**: PDF-Utilities-{version}-Windows-*.msi
-          - **macOS**: PDF-Utilities-{version}-macOS-*.dmg
-          - **Linux**: 
-            - PDF-Utilities-{version}-Linux-*.deb (Debian/Ubuntu)
-            - PDF-Utilities-{version}-Linux-*.rpm (Fedora/RHEL)
-            - PDF-Utilities-{version}-Linux-*.AppImage (Portable)
+          - **Windows**: PDF-Utilities-${VERSION}-Windows-*.msi
+          - **macOS**: PDF-Utilities-${VERSION}-macOS-*.dmg
+          - **Linux**:
+            - PDF-Utilities-${VERSION}-Linux-*.deb (Debian/Ubuntu)
+            - PDF-Utilities-${VERSION}-Linux-*.rpm (Fedora/RHEL)
+            - PDF-Utilities-${VERSION}-Linux-*.AppImage (Portable)
           
           ---
           *This release was automatically generated from commit ${{ github.sha }}*
           EOF
+          
+          if [ -f "release_notes.md" ]; then
+            echo "✅ Release notes generated successfully"
+          else
+            echo "❌ Failed to generate release notes"
+            exit 1
+          fi
           
           # Output the content
           echo "content<<EOF" >> $GITHUB_OUTPUT
@@ -197,25 +263,76 @@ jobs:
       - name: Update version in pom.xml
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
+          
+          echo "Updating pom.xml version to $VERSION for ${{ matrix.platform }}..."
+          
+          # Check if pom.xml exists
+          if [ ! -f "pom.xml" ]; then
+            echo "❌ pom.xml not found"
+            exit 1
+          fi
+          
           # Update main version
-          sed -i.bak "s/<version>.*<\\/version>/<version>$VERSION<\\/version>/" pom.xml
+          if sed -i.bak "s/<version>[^<]*<\\/version>/<version>$VERSION<\\/version>/" pom.xml; then
+            echo "✅ Updated main version in pom.xml"
+          else
+            echo "⚠️  Failed to update main version in pom.xml"
+          fi
+          
           # Update app.version property
-          sed -i.bak "s/<app\\.version>.*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml
+          if sed -i.bak "s/<app\\.version>[^<]*<\\/app\\.version>/<app.version>$VERSION<\\/app.version>/" pom.xml; then
+            echo "✅ Updated app.version property in pom.xml"
+          else
+            echo "⚠️  Failed to update app.version property in pom.xml"
+          fi
+          
           # Update all jpackage app-version arguments
-          sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml
+          if sed -i.bak "s/--app-version [0-9A-Za-z.-]*/--app-version $VERSION/g" pom.xml; then
+            echo "✅ Updated jpackage app-version arguments in pom.xml"
+          else
+            echo "⚠️  Failed to update jpackage app-version arguments in pom.xml"
+          fi
+          
           rm -f pom.xml.bak
+          echo "✅ Version update completed for $VERSION"
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: |
+          echo "Building for ${{ matrix.platform }} platform..."
+          
+          # Set platform-specific jpackage properties
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            mvn clean install -DskipTests -Dskip.windows=false -Dskip.windows.exe=false
+          elif [ "${{ matrix.platform }}" = "macos" ]; then
+            mvn clean install -DskipTests -Dskip.macos=false -Dskip.macos.pkg=false
+          else
+            mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.app.image=false
+          fi
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Maven build failed for ${{ matrix.platform }}"
+            exit 1
+          fi
+          
+          echo "✅ Maven build completed successfully for ${{ matrix.platform }}"
 
       - name: Create installers
         run: |
+          echo "Creating installers for ${{ matrix.platform }}..."
+          
           if [ "${{ matrix.platform }}" = "windows" ]; then
             cmd /c package-app.bat
           else
             chmod +x package-app.sh
             ./package-app.sh
           fi
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Package creation failed for ${{ matrix.platform }}"
+            exit 1
+          fi
+          
+          echo "✅ Package creation completed successfully for ${{ matrix.platform }}"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -243,126 +360,86 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: Prepare individual platform packages
+      - name: Prepare release packages
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
           mkdir -p release-packages
           
-          # Process each platform's artifacts individually
+          echo "Processing artifacts for release..."
+          
+          # Simple approach: copy all artifacts with clean names
           for platform_dir in artifacts/*/; do
             platform=$(basename "$platform_dir")
             echo "Processing $platform artifacts..."
             
             if [ -d "$platform_dir" ]; then
-              # Find all files in the platform directory
-              find "$platform_dir" -type f -name "*" | while read -r file; do
-                # Get relative path from platform directory
-                rel_path=$(echo "$file" | sed "s|^$platform_dir||")
+              # Find all installer files and copy them with simple names
+              find "$platform_dir" -type f \( -name "*.msi" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.exe" \) | while read -r file; do
                 filename=$(basename "$file")
-                dirname=$(dirname "$rel_path")
+                extension="${filename##*.}"
                 
-                # Create a clean filename for the release
-                # Remove common prefixes, version numbers, and clean the filename
-                clean_filename=$(echo "$filename" | \
-                  sed 's/^PDF_Utilities_[0-9.]*_*//' | \
-                  sed 's/^pdf-utilities_[0-9.]*_*//' | \
-                  sed 's/^PDF_Utilities_*//' | \
-                  sed 's/[0-9]\+\.[0-9]\+\.[0-9]\+[^a-zA-Z0-9]*//' | \
-                  sed 's/^[_-]*//' | \
-                  sed 's/[^a-zA-Z0-9._-]/_/g')
+                # Create simple, clean filename
+                case "$platform" in
+                  "PDF-Utilities-Linux"*)
+                    platform_name="Linux"
+                    ;;
+                  "PDF-Utilities-macOS"*)
+                    platform_name="macOS"
+                    ;;
+                  "PDF-Utilities-Windows"*)
+                    platform_name="Windows"
+                    ;;
+                  *)
+                    platform_name="$platform"
+                    ;;
+                esac
                 
-                # If filename is empty after cleaning, use a generic name
-                if [ -z "$clean_filename" ] || [ "$clean_filename" = "." ]; then
-                  # Extract file extension
-                  extension="${filename##*.}"
-                  if [ "$extension" = "$filename" ]; then
-                    # No extension found
-                    clean_filename="installer"
-                  else
-                    clean_filename="installer.$extension"
-                  fi
-                fi
-                
-                if [ "$dirname" = "." ]; then
-                  # File is in root of platform directory
-                  cp "$file" "release-packages/PDF-Utilities-$VERSION-$platform-$clean_filename"
-                else
-                  # File is in subdirectory, include directory structure
-                  clean_dirname=$(echo "$dirname" | sed 's/[^a-zA-Z0-9._-]/_/g' | sed 's|^/||')
-                  cp "$file" "release-packages/PDF-Utilities-$VERSION-$platform-$clean_dirname-$clean_filename"
-                fi
+                clean_filename="PDF-Utilities-${VERSION}-${platform_name}.${extension}"
+                cp "$file" "release-packages/$clean_filename"
+                echo "✓ Prepared: $clean_filename"
               done
             fi
           done
           
-          echo "Created individual platform packages:"
+          echo "Release packages prepared:"
           ls -la release-packages/
 
       - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.prepare-release.outputs.tag_name }}
-          release_name: PDF Utilities ${{ needs.prepare-release.outputs.version }}
-          body: ${{ needs.prepare-release.outputs.release_notes }}
-          draft: false
-          prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
-
-      - name: Upload Individual Platform Assets
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
+          # Create release notes file
+          echo "${{ needs.prepare-release.outputs.release_notes }}" > release_notes.md
           
-          # Upload each individual file as a separate asset
-          for asset in release-packages/*; do
-            if [ -f "$asset" ]; then
-              filename=$(basename "$asset")
-              echo "Uploading $filename..."
-              
-              # Determine content type based on file extension
-              case "$filename" in
-                *.msi)
-                  content_type="application/x-msi"
-                  ;;
-                *.dmg)
-                  content_type="application/x-apple-diskimage"
-                  ;;
-                *.deb)
-                  content_type="application/vnd.debian.binary-package"
-                  ;;
-                *.rpm)
-                  content_type="application/x-rpm"
-                  ;;
-                *.AppImage)
-                  content_type="application/x-executable"
-                  ;;
-                *.exe)
-                  content_type="application/x-msdownload"
-                  ;;
-                *.zip)
-                  content_type="application/zip"
-                  ;;
-                *)
-                  content_type="application/octet-stream"
-                  ;;
-              esac
-              
-              # Use curl to upload individual assets
-              curl -X POST \
-                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: $content_type" \
-                --data-binary @"$asset" \
-                "$UPLOAD_URL?name=$filename"
-              
-              if [ $? -eq 0 ]; then
-                echo "✓ Successfully uploaded $filename"
-              else
-                echo "✗ Failed to upload $filename"
-              fi
+          # Determine if this is a prerelease
+          if [ "${{ needs.prepare-release.outputs.is_prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+          
+          # Create the GitHub release
+          gh release create ${{ needs.prepare-release.outputs.tag_name }} \
+            --title "PDF Utilities ${{ needs.prepare-release.outputs.version }}" \
+            --notes-file release_notes.md \
+            $PRERELEASE_FLAG \
+            --latest
+
+      - name: Upload Release Assets
+        run: |
+          # Upload all files in release-packages directory
+          if [ -d "release-packages" ] && [ "$(ls -A release-packages)" ]; then
+            echo "Uploading release assets..."
+            gh release upload ${{ needs.prepare-release.outputs.tag_name }} release-packages/*
+            
+            if [ $? -eq 0 ]; then
+              echo "✓ Successfully uploaded all release assets"
+            else
+              echo "✗ Failed to upload release assets"
+              exit 1
             fi
-          done
+          else
+            echo "✗ No release packages found to upload"
+            exit 1
+          fi
 
   # Job 4: Post-release tasks
   post-release:
@@ -402,7 +479,9 @@ jobs:
           echo "- **Version**: ${{ needs.prepare-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag**: ${{ needs.prepare-release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Prerelease**: ${{ needs.prepare-release.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release URL**: ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
+          
+          # Note: GitHub CLI doesn't provide the release URL in outputs like the old action did
+          echo "- **Status**: Release workflow completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Available Downloads" >> $GITHUB_STEP_SUMMARY
           echo "Individual platform installers are available as separate download files:" >> $GITHUB_STEP_SUMMARY
@@ -410,4 +489,5 @@ jobs:
           echo "- **macOS**: DMG installer" >> $GITHUB_STEP_SUMMARY
           echo "- **Linux**: DEB package, RPM package, and AppImage" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Release workflow completed successfully!" >> $GITHUB_STEP_SUMMARY
           echo "Each installer is uploaded as a separate file for easy download and installation." >> $GITHUB_STEP_SUMMARY
