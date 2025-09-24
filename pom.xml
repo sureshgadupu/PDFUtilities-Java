@@ -490,7 +490,7 @@
                                 <argument>--linux-shortcut</argument>
                                 <!-- RPM dependencies -->
                                 <argument>--linux-package-deps</argument>
-                                <argument>java-11-openjdk | java-17-openjdk | java-21-openjdk</argument>
+                                <argument>java-24-openjdk</argument>
                                 <argument>--java-options</argument>
                                 <argument>-Xmx512m</argument>
                                 <argument>--java-options</argument>
