@@ -291,7 +291,7 @@ jobs:
       - name: Build with Maven (Windows)
         shell: pwsh
         run: |
-          mvn clean install -DskipTests -Dskip.windows=false -Dskip.windows.exe=false
+          mvn clean install "-DskipTests" "-Dskip.windows=false" "-Dskip.windows.exe=false"
 
       - name: Create installers (Windows)
         shell: pwsh
@@ -331,10 +331,38 @@ jobs:
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
           cp pom.xml pom.xml.backup
-          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
-          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
-          sed -i.bak 's|<argument>--app-version</argument>\n\s*<argument>[^<]*</argument>|<argument>--app-version</argument>
-                                <argument>'"$VERSION"'</argument>|g' pom.xml
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^    <version>1\.0\.0<\/version>$/) {
+                  print "    <version>" version "</version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>$/) {
+                  print "        <app.version>" version "</app.version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          awk -v version="$VERSION" '
+          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
+          {
+              if ($0 ~ /<plugin>/) { in_plugin = 1 }
+              else if (in_plugin && $0 ~ /<\/plugin>/) { in_plugin = 0; in_exec_plugin = 0 }
+              else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) { in_exec_plugin = 1 }
+              else if (in_exec_plugin && $0 ~ /<arguments>/) { in_arguments = 1 }
+              else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) { in_arguments = 0 }
+              else if (in_exec_plugin && in_arguments && $0 ~ /<argument>--app-version<\/argument>/) {
+                  print $0; getline; print "                                <argument>" version "</argument>"; next
+              }
+              print $0
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
           if grep -q "<version>$VERSION</version>" pom.xml && grep -q "<app.version>$VERSION</app.version>" pom.xml && grep -q "<argument>--app-version</argument>" pom.xml && grep -q "<argument>$VERSION</argument>" pom.xml; then
             echo "✅ Version update completed for $VERSION"
           else
@@ -386,10 +414,38 @@ jobs:
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
           cp pom.xml pom.xml.backup
-          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
-          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
-          sed -i.bak 's|<argument>--app-version</argument>\n\s*<argument>[^<]*</argument>|<argument>--app-version</argument>
-                                <argument>'"$VERSION"'</argument>|g' pom.xml
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^    <version>1\.0\.0<\/version>$/) {
+                  print "    <version>" version "</version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          awk -v version="$VERSION" '
+          {
+              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>$/) {
+                  print "        <app.version>" version "</app.version>"
+              } else {
+                  print $0
+              }
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
+          awk -v version="$VERSION" '
+          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
+          {
+              if ($0 ~ /<plugin>/) { in_plugin = 1 }
+              else if (in_plugin && $0 ~ /<\/plugin>/) { in_plugin = 0; in_exec_plugin = 0 }
+              else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) { in_exec_plugin = 1 }
+              else if (in_exec_plugin && $0 ~ /<arguments>/) { in_arguments = 1 }
+              else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) { in_arguments = 0 }
+              else if (in_exec_plugin && in_arguments && $0 ~ /<argument>--app-version<\/argument>/) {
+                  print $0; getline; print "                                <argument>" version "</argument>"; next
+              }
+              print $0
+          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+
           if grep -q "<version>$VERSION</version>" pom.xml && grep -q "<app.version>$VERSION</app.version>" pom.xml && grep -q "<argument>--app-version</argument>" pom.xml && grep -q "<argument>$VERSION</argument>" pom.xml; then
             echo "✅ Version update completed for $VERSION"
           else
