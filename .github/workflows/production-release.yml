@@ -529,7 +529,7 @@ jobs:
       - name: Upload build artifacts (RPM)
         uses: actions/upload-artifact@v4
         with:
-          name: PDF-Utilities-Linux-${{ needs.prepare-release.outputs.version }}
+          name: PDF-Utilities-RPM-${{ needs.prepare-release.outputs.version }}
           path: target/installers/*
           retention-days: 30
 
@@ -545,6 +545,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+
+      - name: Debug downloaded artifacts
+        run: |
+          echo "Artifacts directory structure:" 
+          find artifacts -maxdepth 2 -type d -print | sed 's/^/DIR: /'
+          echo "\nFirst 100 files:" 
+          find artifacts -type f | head -100
+          echo "\nRPM files:" 
+          find artifacts -type f -name "*.rpm" -print || true
+          echo "\nDEB files:" 
+          find artifacts -type f -name "*.deb" -print || true
+          echo "\nAppImage files:" 
+          find artifacts -type f -name "*.AppImage" -print || true
 
       - name: Prepare release packages
         run: |
@@ -574,6 +587,9 @@ jobs:
                     ;;
                   "PDF-Utilities-Windows"*)
                     platform_name="Windows"
+                    ;;
+                  "PDF-Utilities-RPM"*)
+                    platform_name="Linux"
                     ;;
                   *)
                     platform_name="$platform"
