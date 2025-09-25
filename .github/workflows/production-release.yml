@@ -26,6 +26,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 env:
   JAVA_VERSION: "24"
   MAVEN_OPTS: "-Xmx1024m"
@@ -474,6 +477,8 @@ jobs:
   # Job 3: Create GitHub Release
   create-release:
     needs: [prepare-release, build-windows, build-macos, build-linux]
+    env:
+      GH_TOKEN: ${{ github.token }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
