@@ -3,32 +3,32 @@ name: Production Release
 on:
   push:
     tags:
-      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+      - "v*.*.*" # Triggers on version tags like v1.0.0, v1.2.3, etc.
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.0.0)'
+        description: "Version to release (e.g., 1.0.0)"
         required: true
         type: string
-        default: '1.0.0'
+        default: "1.0.0"
       release_type:
-        description: 'Type of release'
+        description: "Type of release"
         required: true
         type: choice
         options:
           - stable
           - beta
           - alpha
-        default: 'stable'
+        default: "stable"
       create_tag:
-        description: 'Create and push version tag'
+        description: "Create and push version tag"
         required: false
         type: boolean
         default: false
 
 env:
-  JAVA_VERSION: '24'
-  MAVEN_OPTS: '-Xmx1024m'
+  JAVA_VERSION: "24"
+  MAVEN_OPTS: "-Xmx1024m"
 
 jobs:
   # Job 1: Validate and prepare release
@@ -43,7 +43,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for changelog generation
+          fetch-depth: 0 # Fetch full history for changelog generation
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -99,18 +99,18 @@ jobs:
             
             echo "Extracted from tag - Tag: $TAG_NAME, Version: $VERSION"
           fi
-          
+
           # Determine if this is a prerelease
           if [[ "$VERSION" =~ (alpha|beta|rc|pre|snapshot) ]]; then
             IS_PRERELEASE="true"
           else
             IS_PRERELEASE="false"
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          
+
           echo "✅ Version extraction completed:"
           echo "   Version: $VERSION"
           echo "   Tag: $TAG_NAME"
@@ -119,7 +119,7 @@ jobs:
       - name: Validate version format
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           # More flexible version validation - accept common formats
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]] && \
              [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
@@ -145,51 +145,16 @@ jobs:
           # Create a backup
           cp pom.xml pom.xml.backup
 
-          # Use a more targeted approach with temporary files
-          # Update main project version using a more specific pattern that only matches the project version
-          awk -v version="$VERSION" '
-          {
-              if ($0 ~ /^    <version>1\.0\.0<\/version>/) {
-                  print "    <version>" version "</version>"
-              } else {
-                  print $0
-              }
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+          # Use a simpler, more reliable approach with sed
+          # Update main project version - be very specific with context
+          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
 
-          # Update app.version property specifically (not other properties or plugin versions)
-          awk -v version="$VERSION" '
-          {
-              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>/) {
-                  print "        <app.version>" version "</app.version>"
-              } else {
-                  print $0
-              }
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+          # Update app.version property - be very specific with context
+          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
 
-          # Update hardcoded app-version arguments in jpackage plugin configurations
-          # Use a more specific pattern to only match the app-version arguments, not plugin versions
-          awk -v version="$VERSION" '
-          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
-          {
-              if ($0 ~ /<plugin>/) {
-                  in_plugin = 1
-              } else if (in_plugin && $0 ~ /<\/plugin>/) {
-                  in_plugin = 0
-                  in_exec_plugin = 0
-              } else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) {
-                  in_exec_plugin = 1
-              } else if (in_exec_plugin && $0 ~ /<arguments>/) {
-                  in_arguments = 1
-              } else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) {
-                  in_arguments = 0
-              } else if (in_exec_plugin && in_arguments && $0 ~ /--app-version<\/argument>/) {
-                  print $0
-                  getline
-                  print "                                <argument>" version "</argument>"
-                  next
-              }
-              print $0
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+          # Update all hardcoded app-version arguments in jpackage plugin configurations
+          # This is more targeted and less likely to cause issues
+          sed -i.bak 's|--app-version 1\.0\.0|--app-version '"$VERSION"'|g' pom.xml
 
           # Verify the changes
           if grep -q "<version>$VERSION</version>" pom.xml && \
@@ -211,12 +176,12 @@ jobs:
         run: |
           TAG_NAME="${{ steps.version.outputs.tag_name }}"
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           echo "Generating release notes for $VERSION..."
-          
+
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
+
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "Generating changelog from $PREVIOUS_TAG to $TAG_NAME"
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD 2>/dev/null || echo "- Release notes generation failed")
@@ -224,21 +189,21 @@ jobs:
             echo "No previous tag found, generating full changelog"
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20 2>/dev/null || echo "- Release notes generation failed")
           fi
-          
+
           # Create release notes
           cat > release_notes.md << EOF
           ## PDF Utilities $VERSION
-          
+
           ### What's New
           $CHANGELOG
-          
+
           ### Installation
           Download the appropriate installer for your operating system from the individual files below.
-          
+
           ### System Requirements
           - Java 24 or higher
           - Windows 10+, macOS 10.14+, or Linux (Ubuntu 18.04+)
-          
+
           ### Available Installers
           - **Windows**: PDF-Utilities-${VERSION}-Windows-*.msi
           - **macOS**: PDF-Utilities-${VERSION}-macOS-*.dmg
@@ -246,42 +211,27 @@ jobs:
             - PDF-Utilities-${VERSION}-Linux-*.deb (Debian/Ubuntu)
             - PDF-Utilities-${VERSION}-Linux-*.rpm (Fedora/RHEL)
             - PDF-Utilities-${VERSION}-Linux-*.AppImage (Portable)
-          
+
           ---
           *This release was automatically generated from commit ${{ github.sha }}*
           EOF
-          
+
           if [ -f "release_notes.md" ]; then
             echo "✅ Release notes generated successfully"
           else
             echo "❌ Failed to generate release notes"
             exit 1
           fi
-          
+
           # Output the content
           echo "content<<EOF" >> $GITHUB_OUTPUT
           cat release_notes.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
   # Job 2: Build for all platforms
-  build-all-platforms:
+  build-windows:
     needs: prepare-release
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            artifact-name: PDF-Utilities-Linux
-            output-path: target/installers/*
-          - os: macos-latest
-            platform: macos
-            artifact-name: PDF-Utilities-macOS
-            output-path: target/installers/*
-          - os: windows-latest
-            platform: windows
-            artifact-name: PDF-Utilities-Windows
-            output-path: target/installers/*
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -292,33 +242,81 @@ jobs:
           distribution: "temurin"
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Debug Maven dependencies and versions
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Update version in pom.xml (Windows)
+        shell: pwsh
         run: |
-          echo "=== Maven and Java Environment Debug Info ==="
-          echo "Maven version:"
-          mvn --version
-          echo ""
-          echo "Java version:"
-          java -version
-          echo ""
-          echo "=== Maven Effective POM (plugins section) ==="
-          mvn help:effective-pom -Doutput=effective-pom.xml
-          ${{ matrix.platform == 'windows' && 'if (Test-Path effective-pom.xml) { Get-Content effective-pom.xml | Select-String -Pattern "maven-antrun-plugin" -Context 5 -CaseSensitive:$false; if (!$?) { echo "maven-antrun-plugin not found in effective POM" } }' || 'grep -A 20 -B 5 "maven-antrun-plugin" effective-pom.xml || echo "maven-antrun-plugin not found in effective POM"' }}
-          echo ""
-          echo "=== Maven Dependency Tree for antrun plugin ==="
-          mvn dependency:tree -Dincludes=org.apache.maven.plugins:maven-antrun-plugin | head -20
-          echo ""
-          echo "=== Maven Local Repository Status ==="
-          echo "Maven antrun plugin in local repo:"
-          ${{ matrix.platform == 'windows' && 'Get-ChildItem -Path "~/.m2/repository" -Name "*antrun*" -Directory -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10' || 'find ~/.m2/repository -name "*antrun*" -type d | head -10' }}
-          echo ""
-          echo "=== Maven Settings ==="
-          ${{ matrix.platform == 'windows' && 'if (Test-Path "~/.m2/settings.xml") { echo "Maven settings.xml exists:"; Get-Item "~/.m2/settings.xml" | Format-Table -Property Name, LastWriteTime, Length; echo "Settings content:"; Get-Content "~/.m2/settings.xml" } else { echo "No Maven settings.xml found" }' || 'if [ -f ~/.m2/settings.xml ]; then echo "Maven settings.xml exists:"; ls -la ~/.m2/settings.xml; echo "Settings content:"; cat ~/.m2/settings.xml; else echo "No Maven settings.xml found"; fi' }}
-          echo ""
-          echo "=== Maven Plugin List ==="
-          mvn help:all-profiles | head -30
-          echo ""
-          echo "Debug info collection completed"
+          $VERSION = "${{ needs.prepare-release.outputs.version }}"
+          Write-Host "Updating pom.xml version to $VERSION for Windows using PowerShell..."
+
+          if (-not (Test-Path pom.xml)) { Write-Error "pom.xml not found"; exit 1 }
+
+          Copy-Item pom.xml pom.xml.backup -Force
+
+          $lines = Get-Content pom.xml
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+            $line = $lines[$i]
+            if ($line -match '^    <version>1\.0\.0</version>$') {
+              $lines[$i] = "    <version>$VERSION</version>"
+            }
+            elseif ($line -match '^        <app\.version>1\.0\.0</app\.version>$') {
+              $lines[$i] = "        <app.version>$VERSION</app.version>"
+            }
+            elseif ($line -match '^\s{28}<argument>--app-version</argument>$') {
+              if ($i + 1 -lt $lines.Count -and $lines[$i+1] -match '^\s{28}<argument>.*</argument>$') {
+                $lines[$i+1] = "                                <argument>$VERSION</argument>"
+              }
+            }
+          }
+          $lines | Set-Content pom.xml -NoNewline
+
+          # Verify
+          $pom = Get-Content pom.xml -Raw
+          if ($pom -match "<version>$VERSION</version>" -and $pom -match "<app.version>$VERSION</app.version>" -and $pom -match "<argument>--app-version</argument>\s*<argument>$VERSION</argument>") {
+            Write-Host "✅ Version update completed for $VERSION"
+          } else {
+            Write-Host "❌ Version update verification failed, restoring backup"
+            Move-Item -Force pom.xml.backup pom.xml
+            exit 1
+          }
+          Remove-Item -Force pom.xml.backup
+
+      - name: Build with Maven (Windows)
+        shell: pwsh
+        run: |
+          mvn clean install -DskipTests -Dskip.windows=false -Dskip.windows.exe=false
+
+      - name: Create installers (Windows)
+        shell: pwsh
+        run: |
+          cmd /c package-app.bat
+
+      - name: Upload build artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Windows-${{ needs.prepare-release.outputs.version }}
+          path: target/installers/*
+          retention-days: 30
+
+  build-macos:
+    needs: prepare-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -328,139 +326,98 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Update version in pom.xml
+      - name: Update version in pom.xml (macOS)
+        shell: bash
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
-
-          echo "Updating pom.xml version to $VERSION for ${{ matrix.platform }} using temp file approach..."
-
-          # Check if pom.xml exists
-          if [ ! -f "pom.xml" ]; then
-            echo "❌ pom.xml not found"
-            exit 1
-          fi
-
-          # Create a backup
           cp pom.xml pom.xml.backup
-
-          # Use a more targeted approach with temporary files
-          # Update main project version using a more specific pattern that only matches the project version
-          awk -v version="$VERSION" '
-          {
-              if ($0 ~ /^    <version>1\.0\.0<\/version>/) {
-                  print "    <version>" version "</version>"
-              } else {
-                  print $0
-              }
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
-
-          # Update app.version property specifically (not other properties or plugin versions)
-          awk -v version="$VERSION" '
-          {
-              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>/) {
-                  print "        <app.version>" version "</app.version>"
-              } else {
-                  print $0
-              }
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
-
-          # Update hardcoded app-version arguments in jpackage plugin configurations
-          # Use a more specific pattern to only match the app-version arguments, not plugin versions
-          awk -v version="$VERSION" '
-          BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
-          {
-              if ($0 ~ /<plugin>/) {
-                  in_plugin = 1
-              } else if (in_plugin && $0 ~ /<\/plugin>/) {
-                  in_plugin = 0
-                  in_exec_plugin = 0
-              } else if (in_plugin && $0 ~ /<artifactId>exec-maven-plugin<\/artifactId>/) {
-                  in_exec_plugin = 1
-              } else if (in_exec_plugin && $0 ~ /<arguments>/) {
-                  in_arguments = 1
-              } else if (in_exec_plugin && in_arguments && $0 ~ /<\/arguments>/) {
-                  in_arguments = 0
-              } else if (in_exec_plugin && in_arguments && $0 ~ /--app-version<\/argument>/) {
-                  print $0
-                  getline
-                  print "                                <argument>" version "</argument>"
-                  next
-              }
-              print $0
-          }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
-
-          # Verify the changes
-          if grep -q "<version>$VERSION</version>" pom.xml && \
-             grep -q "<app.version>$VERSION</app.version>" pom.xml && \
-             grep -q "<argument>--app-version</argument>" pom.xml && \
-             grep -q "<argument>$VERSION</argument>" pom.xml; then
-              echo "✅ Version update completed for $VERSION"
+          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
+          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
+          sed -i.bak 's|<argument>--app-version</argument>\n\s*<argument>[^<]*</argument>|<argument>--app-version</argument>
+                                <argument>'"$VERSION"'</argument>|g' pom.xml
+          if grep -q "<version>$VERSION</version>" pom.xml && grep -q "<app.version>$VERSION</app.version>" pom.xml && grep -q "<argument>--app-version</argument>" pom.xml && grep -q "<argument>$VERSION</argument>" pom.xml; then
+            echo "✅ Version update completed for $VERSION"
           else
-              echo "❌ Version update verification failed, restoring backup"
-              mv pom.xml.backup pom.xml
-              exit 1
+            echo "❌ Version update verification failed, restoring backup"; mv pom.xml.backup pom.xml; exit 1
           fi
-
-          # Clean up backup
           rm -f pom.xml.backup
 
-      - name: Build with Maven
+      - name: Build with Maven (macOS)
+        shell: bash
         run: |
-          echo "Building for ${{ matrix.platform }} platform..."
-          
-          # Set platform-specific jpackage properties
-          if [ "${{ matrix.platform }}" = "windows" ]; then
-            mvn clean install -DskipTests -Dskip.windows=false -Dskip.windows.exe=false
-          elif [ "${{ matrix.platform }}" = "macos" ]; then
-            mvn clean install -DskipTests -Dskip.macos=false -Dskip.macos.pkg=false
-          else
-            mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.app.image=false
-          fi
-          
-          if [ $? -ne 0 ]; then
-            echo "❌ Maven build failed for ${{ matrix.platform }}"
-            exit 1
-          fi
-          
-          echo "✅ Maven build completed successfully for ${{ matrix.platform }}"
+          mvn clean install -DskipTests -Dskip.macos=false -Dskip.macos.pkg=false
 
-      - name: Create installers
+      - name: Create installers (macOS)
+        shell: bash
         run: |
-          echo "Creating installers for ${{ matrix.platform }}..."
-          
-          if [ "${{ matrix.platform }}" = "windows" ]; then
-            cmd /c package-app.bat
-          else
-            chmod +x package-app.sh
-            ./package-app.sh
-          fi
-          
-          if [ $? -ne 0 ]; then
-            echo "❌ Package creation failed for ${{ matrix.platform }}"
-            exit 1
-          fi
-          
-          echo "✅ Package creation completed successfully for ${{ matrix.platform }}"
+          chmod +x package-app.sh
+          ./package-app.sh
 
-      - name: Upload build artifacts
+      - name: Upload build artifacts (macOS)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}-${{ needs.prepare-release.outputs.version }}
-          path: ${{ matrix.output-path }}
+          name: PDF-Utilities-macOS-${{ needs.prepare-release.outputs.version }}
+          path: target/installers/*
           retention-days: 30
 
-      - name: Debug build output
+  build-linux:
+    needs: prepare-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Update version in pom.xml (Linux)
+        shell: bash
         run: |
-          if [ -d "target/installers" ]; then
-            echo "Build artifacts created:"
-            find target/installers -type f -name "*" | head -20
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          cp pom.xml pom.xml.backup
+          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
+          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
+          sed -i.bak 's|<argument>--app-version</argument>\n\s*<argument>[^<]*</argument>|<argument>--app-version</argument>
+                                <argument>'"$VERSION"'</argument>|g' pom.xml
+          if grep -q "<version>$VERSION</version>" pom.xml && grep -q "<app.version>$VERSION</app.version>" pom.xml && grep -q "<argument>--app-version</argument>" pom.xml && grep -q "<argument>$VERSION</argument>" pom.xml; then
+            echo "✅ Version update completed for $VERSION"
           else
-            echo "No installers directory found"
+            echo "❌ Version update verification failed, restoring backup"; mv pom.xml.backup pom.xml; exit 1
           fi
+          rm -f pom.xml.backup
+
+      - name: Build with Maven (Linux)
+        shell: bash
+        run: |
+          mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.app.image=false
+
+      - name: Create installers (Linux)
+        shell: bash
+        run: |
+          chmod +x package-app.sh
+          ./package-app.sh
+
+      - name: Upload build artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Linux-${{ needs.prepare-release.outputs.version }}
+          path: target/installers/*
+          retention-days: 30
 
   # Job 3: Create GitHub Release
   create-release:
-    needs: [prepare-release, build-all-platforms]
+    needs: [prepare-release, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -472,9 +429,9 @@ jobs:
         run: |
           VERSION="${{ needs.prepare-release.outputs.version }}"
           mkdir -p release-packages
-          
+
           echo "Processing artifacts for release..."
-          
+
           # Simple approach: copy all artifacts with clean names
           for platform_dir in artifacts/*/; do
             platform=$(basename "$platform_dir")
@@ -508,7 +465,7 @@ jobs:
               done
             fi
           done
-          
+
           echo "Release packages prepared:"
           ls -la release-packages/
 
@@ -516,14 +473,14 @@ jobs:
         run: |
           # Create release notes file
           echo "${{ needs.prepare-release.outputs.release_notes }}" > release_notes.md
-          
+
           # Determine if this is a prerelease
           if [ "${{ needs.prepare-release.outputs.is_prerelease }}" = "true" ]; then
             PRERELEASE_FLAG="--prerelease"
           else
             PRERELEASE_FLAG=""
           fi
-          
+
           # Create the GitHub release
           gh release create ${{ needs.prepare-release.outputs.tag_name }} \
             --title "PDF Utilities ${{ needs.prepare-release.outputs.version }}" \
@@ -565,9 +522,9 @@ jobs:
           # Extract major.minor.patch and increment patch
           IFS='.' read -r major minor patch <<< "$VERSION"
           NEW_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
-          
+
           echo "Updating development version to $NEW_VERSION"
-          
+
           # Update version in pom.xml for next development cycle using targeted replacements
           cp pom.xml pom.xml.backup
 
@@ -617,7 +574,7 @@ jobs:
 
           # Clean up backup
           rm -f pom.xml.backup
-          
+
           # Commit and push the version update
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -631,7 +588,7 @@ jobs:
           echo "- **Version**: ${{ needs.prepare-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag**: ${{ needs.prepare-release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Prerelease**: ${{ needs.prepare-release.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
-          
+
           # Note: GitHub CLI doesn't provide the release URL in outputs like the old action did
           echo "- **Status**: Release workflow completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
