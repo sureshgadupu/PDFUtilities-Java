@@ -479,6 +479,7 @@ jobs:
     needs: [prepare-release, build-windows, build-macos, build-linux]
     env:
       GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -544,6 +545,7 @@ jobs:
 
           # Create the GitHub release
           gh release create ${{ needs.prepare-release.outputs.tag_name }} \
+            --repo "${{ github.repository }}" \
             --title "PDF Utilities ${{ needs.prepare-release.outputs.version }}" \
             --notes-file release_notes.md \
             $PRERELEASE_FLAG \
@@ -554,7 +556,7 @@ jobs:
           # Upload all files in release-packages directory
           if [ -d "release-packages" ] && [ "$(ls -A release-packages)" ]; then
             echo "Uploading release assets..."
-            gh release upload ${{ needs.prepare-release.outputs.tag_name }} release-packages/*
+            gh release upload ${{ needs.prepare-release.outputs.tag_name }} --repo "${{ github.repository }}" release-packages/*
             
             if [ $? -eq 0 ]; then
               echo "✓ Successfully uploaded all release assets"
