@@ -464,6 +464,21 @@ jobs:
         run: |
           mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.app.image=false
 
+      - name: Create AppImage from jpackage app-image (Linux)
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          APPDIR=$(find target/installers/app-image -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1 || true)
+          if [ -n "$APPDIR" ]; then
+            OUTPUT="target/installers/PDF-Utilities-${VERSION}-Linux.AppImage"
+            echo "Found app-image dir: $APPDIR"
+            echo "Creating AppImage: $OUTPUT"
+            appimagetool "$APPDIR" "$OUTPUT" || { echo "appimagetool failed"; exit 1; }
+            ls -la "$OUTPUT" || true
+          else
+            echo "No app-image directory found under target/installers/app-image; skipping AppImage creation"
+          fi
+
       - name: Upload build artifacts (Linux)
         uses: actions/upload-artifact@v4
         with:
