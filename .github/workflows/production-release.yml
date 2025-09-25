@@ -378,12 +378,6 @@ jobs:
         run: |
           mvn clean install -DskipTests -Dskip.macos=false -Dskip.macos.pkg=false
 
-      - name: Create installers (macOS)
-        shell: bash
-        run: |
-          chmod +x package-app.sh
-          ./package-app.sh
-
       - name: Upload build artifacts (macOS)
         uses: actions/upload-artifact@v4
         with:
@@ -411,6 +405,15 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: Install AppImage tooling (Linux)
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget libfuse2
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/appimagetool
 
       - name: Update version in pom.xml (Linux)
         shell: bash
@@ -459,7 +462,14 @@ jobs:
       - name: Build with Maven (Linux)
         shell: bash
         run: |
-          mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.fedora=true -Dskip.app.image=false
+          mvn clean install -DskipTests -Dskip.ubuntu=false -Dskip.app.image=false
+
+      - name: Upload build artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Utilities-Linux-${{ needs.prepare-release.outputs.version }}
+          path: target/installers/*
+          retention-days: 30
 
   build-rpm:
     needs: prepare-release
@@ -520,17 +530,11 @@ jobs:
         run: |
           mvn clean install -DskipTests -Dskip.fedora=false -Dskip.windows=true -Dskip.macos=true -Dskip.ubuntu=true -Dskip.app.image=true
 
-      - name: Create installers (RPM)
-        shell: bash
-        run: |
-          chmod +x package-app.sh
-          ./package-app.sh
-
       - name: Upload build artifacts (RPM)
         uses: actions/upload-artifact@v4
         with:
           name: PDF-Utilities-RPM-${{ needs.prepare-release.outputs.version }}
-          path: target/installers/*
+          path: target/installers/fedora/*.rpm
           retention-days: 30
 
   # Job 3: Create GitHub Release
