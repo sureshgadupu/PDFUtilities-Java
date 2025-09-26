@@ -505,26 +505,26 @@ jobs:
             echo "Found app-image dir: $APPDIR"
             echo "Preparing AppDir (AppRun, .desktop, icon)"
 
-            # AppRun launcher (indent-safe in YAML; strip leading spaces before write)
-            cat << 'EOF' | sed 's/^\s\{1,\}//' > "$APPDIR/AppRun"
-            #!/usr/bin/env bash
-            set -euo pipefail
-            HERE="$(cd "$(dirname "$0")" && pwd)"
-            exec "$HERE/bin/PDF Utilities" "$@"
-            EOF
+            # AppRun launcher (avoid heredoc to be YAML-indent safe)
+            printf '%s\n' \
+              '#!/usr/bin/env bash' \
+              'set -euo pipefail' \
+              'HERE="$(cd "$(dirname "$0")" && pwd)"' \
+              'exec "$HERE/bin/PDF Utilities" "$@"' \
+              > "$APPDIR/AppRun"
             chmod +x "$APPDIR/AppRun"
 
-            # Desktop entry (indent-safe in YAML; strip leading spaces before write)
-            cat << 'EOF' | sed 's/^\s\{1,\}//' > "$APPDIR/PDF-Utilities.desktop"
-            [Desktop Entry]
-            Type=Application
-            Name=PDF Utilities
-            Comment=PDF Utilities - A comprehensive tool for PDF manipulation and processing
-            Exec=AppRun %U
-            Icon=pdf-utilities
-            Categories=Office;
-            Terminal=false
-            EOF
+            # Desktop entry (avoid heredoc to be YAML-indent safe)
+            printf '%s\n' \
+              '[Desktop Entry]' \
+              'Type=Application' \
+              'Name=PDF Utilities' \
+              'Comment=PDF Utilities - A comprehensive tool for PDF manipulation and processing' \
+              'Exec=AppRun %U' \
+              'Icon=pdf-utilities' \
+              'Categories=Office;' \
+              'Terminal=false' \
+              > "$APPDIR/PDF-Utilities.desktop"
 
             # Icon
             if [ -f "src/main/resources/images/app.png" ]; then
