@@ -285,18 +285,28 @@ jobs:
           Copy-Item pom.xml pom.xml.backup -Force
 
           $lines = Get-Content pom.xml
+          $nextIsAppVersionValue = $false
           for ($i = 0; $i -lt $lines.Count; $i++) {
             $line = $lines[$i]
             if ($line -match '^    <version>1\.0\.0</version>$') {
               $lines[$i] = "    <version>$VERSION</version>"
+              continue
             }
-            elseif ($line -match '^        <app\.version>1\.0\.0</app\.version>$') {
+            if ($line -match '^        <app\.version>1\.0\.0</app\.version>$') {
               $lines[$i] = "        <app.version>$VERSION</app.version>"
+              continue
             }
-            elseif ($line -match '^\s{28}<argument>--app-version</argument>$') {
-              if ($i + 1 -lt $lines.Count -and $lines[$i+1] -match '^\s{28}<argument>.*</argument>$') {
-                $lines[$i+1] = "                                <argument>$VERSION</argument>"
-              }
+
+            if ($line -match '<argument>--app-version</argument>') {
+              $nextIsAppVersionValue = $true
+              continue
+            }
+
+            if ($nextIsAppVersionValue -and ($line -match '^(\s*)<argument>.*</argument>$')) {
+              $indent = $Matches[1]
+              $lines[$i] = "$indent<argument>$VERSION</argument>"
+              $nextIsAppVersionValue = $false
+              continue
             }
           }
           $lines | Set-Content pom.xml -NoNewline
@@ -493,6 +503,35 @@ jobs:
           if [ -n "$APPDIR" ]; then
             OUTPUT="target/installers/PDF-Utilities-${VERSION}-Linux.AppImage"
             echo "Found app-image dir: $APPDIR"
+            echo "Preparing AppDir (AppRun, .desktop, icon)"
+
+            # AppRun launcher
+            cat > "$APPDIR/AppRun" << 'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+exec "$HERE/bin/PDF Utilities" "$@"
+EOF
+            chmod +x "$APPDIR/AppRun"
+
+            # Desktop entry
+            cat > "$APPDIR/PDF-Utilities.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=PDF Utilities
+Comment=PDF Utilities - A comprehensive tool for PDF manipulation and processing
+Exec=AppRun %U
+Icon=pdf-utilities
+Categories=Office;
+Terminal=false
+EOF
+
+            # Icon
+            if [ -f "src/main/resources/images/app.png" ]; then
+              cp "src/main/resources/images/app.png" "$APPDIR/pdf-utilities.png"
+            elif [ -f "target/images/app.png" ]; then
+              cp "target/images/app.png" "$APPDIR/pdf-utilities.png"
+            fi
             echo "Creating AppImage: $OUTPUT"
             appimagetool "$APPDIR" "$OUTPUT" || { echo "appimagetool failed"; exit 1; }
             ls -la "$OUTPUT" || true
