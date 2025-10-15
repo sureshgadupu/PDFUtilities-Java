@@ -77,7 +77,7 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/Bhartendu-Kumar/rules_template.git
+   git clone https://github.com/sureshgadupu/PDFUtilities-Java
    cd PDFUtilities-Java
    ```
 
