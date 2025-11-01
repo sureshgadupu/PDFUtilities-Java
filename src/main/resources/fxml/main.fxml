@@ -135,10 +135,10 @@ Structure:
                 <!-- File Table (moved BEFORE tabs to ensure action rows sit visually below it) -->
                 <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" editable="true">
                     <columns>
-                        <TableColumn fx:id="fileNameColumn" prefWidth="300.0" text="File Name"/>
-                        <TableColumn fx:id="fileSizeColumn" prefWidth="150.0" text="Size"/>
-                        <TableColumn fx:id="statusColumn" prefWidth="200.0" text="Status"/>
-                        <TableColumn fx:id="passwordColumn" prefWidth="220.0" text="Password"/>
+                        <TableColumn fx:id="fileNameColumn" text="File Name"/>
+                        <TableColumn fx:id="fileSizeColumn" text="Size"/>
+                        <TableColumn fx:id="statusColumn" text="Status"/>
+                        <TableColumn fx:id="passwordColumn" text="Password"/>
                     </columns>
                 </TableView>
 

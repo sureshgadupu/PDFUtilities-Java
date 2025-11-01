@@ -170,6 +170,11 @@ public class MainController implements Initializable {
         fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
+        // Set columns to share space with percentages: 40%, 10%, 10%, 40%
+        fileNameColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.50));
+        fileSizeColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.10));
+        statusColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.10));
+
         // Set table items
         fileTable.setItems(fileItems);
 
@@ -185,6 +190,8 @@ public class MainController implements Initializable {
         // Configure password column with masked cell
         if (passwordColumn != null) {
             passwordColumn.setCellValueFactory(new PropertyValueFactory<>("password"));
+            // Set password column width to 40%
+            passwordColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.30));
             // Ensure simple text header without a toggle
             passwordColumn.setText("Password");
             passwordColumn.setGraphic(null);
