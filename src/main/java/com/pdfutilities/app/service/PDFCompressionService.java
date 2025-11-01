@@ -39,17 +39,17 @@ public class PDFCompressionService extends BasePDFService {
      */
     private float minJpegQuality = 0.25f;
     private float maxJpegQuality = 0.9f;
-    private double minScale = 0.4;   // 40% of original
-    private double maxScale = 1.0;   // 100% (no downscale)
+    private double minScale = 0.4; // 40% of original
+    private double maxScale = 1.0; // 100% (no downscale)
     private int maxIterations = 6;
 
     public enum CompressionLevel {
-        VERY_LOW("Tiny (Very Low Quality)", 0.25f, 0.4),                  // below current LOW
-        LOW("Smallest (Low Quality)", 0.35f, 0.5),                         // existing LOW
-        LOW_MEDIUM("Small (Low-Medium Quality)", 0.5f, 0.65),              // between LOW and MEDIUM
-        MEDIUM("Balanced (Medium Quality)", 0.6f, 0.75),                   // existing MEDIUM
-        MEDIUM_HIGH("Balanced+ (Medium-High Quality)", 0.7f, 0.9),         // between MEDIUM and HIGH
-        HIGH("Largest (High Quality)", 0.8f, 1.0);                         // existing HIGH
+        VERY_LOW("Tiny (Very Low Quality)", 0.25f, 0.4), // below current LOW
+        LOW("Smallest (Low Quality)", 0.35f, 0.5), // existing LOW
+        LOW_MEDIUM("Small (Low-Medium Quality)", 0.5f, 0.65), // between LOW and MEDIUM
+        MEDIUM("Balanced (Medium Quality)", 0.6f, 0.75), // existing MEDIUM
+        MEDIUM_HIGH("Balanced+ (Medium-High Quality)", 0.7f, 0.9), // between MEDIUM and HIGH
+        HIGH("Largest (High Quality)", 0.8f, 1.0); // existing HIGH
 
         private final String displayName;
         private final float jpegQuality;
@@ -79,7 +79,8 @@ public class PDFCompressionService extends BasePDFService {
          * For MB-sized files: start from middle and go upwards.
          */
         public static CompressionLevel startForSize(long bytes) {
-            if (bytes <= 0) return MEDIUM;
+            if (bytes <= 0)
+                return MEDIUM;
             long kb = Math.round(bytes / 1024.0);
             long mb = Math.round(bytes / (1024.0 * 1024.0));
             if (mb >= 1) {
@@ -92,17 +93,21 @@ public class PDFCompressionService extends BasePDFService {
         }
 
         /**
-         * Provide an ordered list from a given starting level upwards to higher quality/larger size.
+         * Provide an ordered list from a given starting level upwards to higher
+         * quality/larger size.
          * This helps when iterating to try progressively larger outputs.
          */
         public static CompressionLevel[] ascendingFrom(CompressionLevel start) {
             CompressionLevel[] order = new CompressionLevel[] {
-                VERY_LOW, LOW, LOW_MEDIUM, MEDIUM, MEDIUM_HIGH, HIGH
+                    VERY_LOW, LOW, LOW_MEDIUM, MEDIUM, MEDIUM_HIGH, HIGH
             };
             // find start index
             int idx = 0;
             for (int i = 0; i < order.length; i++) {
-                if (order[i] == start) { idx = i; break; }
+                if (order[i] == start) {
+                    idx = i;
+                    break;
+                }
             }
             CompressionLevel[] seq = new CompressionLevel[order.length - idx];
             System.arraycopy(order, idx, seq, 0, seq.length);
@@ -136,7 +141,7 @@ public class PDFCompressionService extends BasePDFService {
     public long getTargetSizeBytes() {
         return targetSizeBytes;
     }
-    
+
     private void log(String msg) {
         System.out.println("[CompressTarget] " + msg);
     }
@@ -144,7 +149,8 @@ public class PDFCompressionService extends BasePDFService {
     /**
      * Optional tuning for the iterative search bounds.
      */
-    public void setTargetSearchBounds(float minJpegQ, float maxJpegQ, double minScale, double maxScale, int maxIterations) {
+    public void setTargetSearchBounds(float minJpegQ, float maxJpegQ, double minScale, double maxScale,
+            int maxIterations) {
         this.minJpegQuality = Math.max(0.1f, Math.min(minJpegQ, 0.95f));
         this.maxJpegQuality = Math.max(this.minJpegQuality, Math.min(maxJpegQ, 0.99f));
         this.minScale = Math.max(0.2, Math.min(minScale, 1.0));
@@ -162,12 +168,21 @@ public class PDFCompressionService extends BasePDFService {
 
         for (File pdfFile : inputFiles) {
             try {
+                // Check if file is encrypted but no password provided
+                String password = getPassword(pdfFile);
+                if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+                    System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+                    allSuccessful = false; // Mark as failed since we couldn't process this file
+                    continue;
+                }
+
                 if (targetSizeBytes > 0L) {
                     compressToTargetSize(pdfFile, outputDirectory, targetSizeBytes);
                 } else {
                     // Choose starting level based on file size rule if the caller left default
                     CompressionLevel start = compressionLevel;
-                    if (start == null) start = CompressionLevel.MEDIUM;
+                    if (start == null)
+                        start = CompressionLevel.MEDIUM;
                     // If UI didn't override and we want adaptive start:
                     if (compressionLevel == CompressionLevel.MEDIUM) {
                         start = CompressionLevel.startForSize(pdfFile.length());
@@ -186,8 +201,15 @@ public class PDFCompressionService extends BasePDFService {
     }
 
     private void compressPdf(File pdfFile, String outputDirectory, CompressionLevel level) throws IOException {
-        try (FileInputStream fis = new FileInputStream(pdfFile);
-             PDDocument doc = Loader.loadPDF(pdfFile)) {
+        String password = getPassword(pdfFile);
+
+        PDDocument doc;
+        if (password != null && !password.trim().isEmpty()) {
+            doc = Loader.loadPDF(pdfFile, password);
+        } else {
+            doc = Loader.loadPDF(pdfFile);
+        }
+        try (FileInputStream fis = new FileInputStream(pdfFile)) {
 
             // Iterate all pages and downscale/convert raster images to JPEG
             for (PDPage page : doc.getPages()) {
@@ -236,35 +258,44 @@ public class PDFCompressionService extends BasePDFService {
             // Save to destination
             String outName = pdfFile.getName().replaceAll("(?i)\\.pdf$", "") + "_compressed.pdf";
             File out = new File(outputDirectory, outName);
+
+            // Remove encryption dictionary if the original was encrypted
+            if (password != null && !password.trim().isEmpty()) {
+                doc.setAllSecurityToBeRemoved(true);
+            }
+
             doc.save(out);
             System.out.println("Compressed: " + pdfFile.getName() + " -> " + out.getName());
+        } finally {
+            doc.close();
         }
     }
 
     /**
      * Iteratively try to reach a target size by adjusting JPEG quality and scale.
      * Heuristic approach:
-     *  - Start from medium settings and binary-search quality
-     *  - If still larger than target, reduce scale and retry
+     * - Start from medium settings and binary-search quality
+     * - If still larger than target, reduce scale and retry
      */
     private void compressToTargetSize(File pdfFile, String outputDirectory, long targetBytes) throws IOException {
         log("Target-size mode enabled. Target: " + targetBytes + " bytes (" + (targetBytes / 1024) + " KB)");
-        log("Search bounds: quality=[" + minJpegQuality + "," + maxJpegQuality + "] scale=[" + minScale + "," + maxScale + "], maxIter=" + maxIterations);
-        
+        log("Search bounds: quality=[" + minJpegQuality + "," + maxJpegQuality + "] scale=[" + minScale + "," + maxScale
+                + "], maxIter=" + maxIterations);
+
         float lowQ = minJpegQuality;
         float highQ = maxJpegQuality;
         double lowScale = minScale;
         double highScale = maxScale;
-        
-        float curQ = 0.35f;   // seed: LOW
+
+        float curQ = 0.35f; // seed: LOW
         double curScale = 0.5;
         curQ = Math.max(lowQ, Math.min(curQ, highQ));
         curScale = Math.max(lowScale, Math.min(curScale, highScale));
         log(String.format("Seed params -> quality=%.3f, scale=%.2f", curQ, curScale));
-        
+
         File bestFile = null;
         long bestDelta = Long.MAX_VALUE;
-        
+
         for (int iter = 1; iter <= maxIterations; iter++) {
             log(String.format("Iter %d/%d: trying quality=%.3f, scale=%.2f ...", iter, maxIterations, curQ, curScale));
             File candidate = compressWithParams(pdfFile, outputDirectory, curQ, curScale);
@@ -273,7 +304,7 @@ public class PDFCompressionService extends BasePDFService {
             long delta = Math.abs(size - targetBytes);
             long deltaKB = Math.round(delta / 1024.0);
             log(String.format(" -> result size: %d KB (delta=%d KB)", sizeKB, deltaKB));
-            
+
             if (delta < bestDelta) {
                 bestDelta = delta;
                 bestFile = candidate;
@@ -282,42 +313,47 @@ public class PDFCompressionService extends BasePDFService {
                 deleteQuietly(candidate);
                 log(" -> worse than best; discarded");
             }
-            
+
             long tol = Math.max(10_000, Math.round(targetBytes * 0.08)); // 10KB or 8%
             if (size == targetBytes || delta <= tol) {
                 log("Stopping early: within tolerance (" + (tol / 1024) + " KB)");
                 break;
             }
-            
+
             if (size > targetBytes) {
                 // Too big -> decrease quality first
                 highQ = curQ;
                 curQ = (lowQ + highQ) / 2f;
-                log(String.format(" size>target -> lower quality: new quality=%.3f (bounds [%.3f, %.3f])", curQ, lowQ, highQ));
-                
+                log(String.format(" size>target -> lower quality: new quality=%.3f (bounds [%.3f, %.3f])", curQ, lowQ,
+                        highQ));
+
                 if ((highQ - lowQ) < 0.03f) {
                     highScale = curScale;
                     curScale = (lowScale + highScale) / 2.0;
-                    log(String.format(" quality converged -> reduce scale: new scale=%.2f (bounds [%.2f, %.2f])", curScale, lowScale, highScale));
+                    log(String.format(" quality converged -> reduce scale: new scale=%.2f (bounds [%.2f, %.2f])",
+                            curScale, lowScale, highScale));
                 }
             } else {
                 // Too small -> increase quality first
                 lowQ = curQ;
                 curQ = (lowQ + highQ) / 2f;
-                log(String.format(" size<target -> raise quality: new quality=%.3f (bounds [%.3f, %.3f])", curQ, lowQ, highQ));
-                
+                log(String.format(" size<target -> raise quality: new quality=%.3f (bounds [%.3f, %.3f])", curQ, lowQ,
+                        highQ));
+
                 if ((highQ - lowQ) < 0.03f) {
                     lowScale = curScale;
                     curScale = Math.min(1.0, (lowScale + highScale) / 2.0);
-                    log(String.format(" quality converged -> increase scale: new scale=%.2f (bounds [%.2f, %.2f])", curScale, lowScale, highScale));
+                    log(String.format(" quality converged -> increase scale: new scale=%.2f (bounds [%.2f, %.2f])",
+                            curScale, lowScale, highScale));
                 }
             }
         }
-        
+
         if (bestFile != null) {
             long bestKB = Math.round(bestFile.length() / 1024.0);
-            log("Best candidate after search: " + bestKB + " KB (delta=" + Math.round(Math.abs(bestFile.length() - targetBytes) / 1024.0) + " KB)");
-            
+            log("Best candidate after search: " + bestKB + " KB (delta="
+                    + Math.round(Math.abs(bestFile.length() - targetBytes) / 1024.0) + " KB)");
+
             // Safety compare with LOW preset
             File lowCandidate = null;
             try {
@@ -339,14 +375,16 @@ public class PDFCompressionService extends BasePDFService {
                     }
                 }
             } finally {
-                if (lowCandidate != null) deleteQuietly(lowCandidate);
+                if (lowCandidate != null)
+                    deleteQuietly(lowCandidate);
             }
-            
+
             String outName = pdfFile.getName().replaceAll("(?i)\\.pdf$", "") + "_compressed.pdf";
             File finalOut = new File(outputDirectory, outName);
             deleteQuietly(finalOut);
             if (!bestFile.renameTo(finalOut)) {
-                java.nio.file.Files.copy(bestFile.toPath(), finalOut.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                java.nio.file.Files.copy(bestFile.toPath(), finalOut.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 deleteQuietly(bestFile);
             }
             log("Final output: " + finalOut.length() / 1024 + " KB");
@@ -360,7 +398,8 @@ public class PDFCompressionService extends BasePDFService {
      * Quietly delete a file if it exists (no exception if it fails).
      */
     private void deleteQuietly(File f) {
-        if (f == null) return;
+        if (f == null)
+            return;
         try {
             if (f.exists()) {
                 if (!f.delete()) {
@@ -377,24 +416,43 @@ public class PDFCompressionService extends BasePDFService {
      * Create a compressed output using explicit JPEG quality and scale.
      * Returns the temporary output File created.
      */
-    private File compressWithParams(File pdfFile, String outputDirectory, float jpegQuality, double scale) throws IOException {
+    private File compressWithParams(File pdfFile, String outputDirectory, float jpegQuality, double scale)
+            throws IOException {
         File out;
-        try (FileInputStream fis = new FileInputStream(pdfFile);
-             PDDocument doc = Loader.loadPDF(pdfFile)) {
+        String password = getPassword(pdfFile);
+
+        // Check if file is encrypted but no password provided
+        if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+            System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+            throw new IOException("Cannot compress encrypted file without password: " + pdfFile.getName());
+        }
+
+        PDDocument doc;
+        if (password != null && !password.trim().isEmpty()) {
+            doc = Loader.loadPDF(pdfFile, password);
+        } else {
+            doc = Loader.loadPDF(pdfFile);
+        }
+        try (FileInputStream fis = new FileInputStream(pdfFile)) {
             int pageIndex = 0;
             for (PDPage page : doc.getPages()) {
                 PDResources resources = page.getResources();
-                if (resources == null) { pageIndex++; continue; }
-                
+                if (resources == null) {
+                    pageIndex++;
+                    continue;
+                }
+
                 int replacedOnPage = 0;
                 for (COSName name : resources.getXObjectNames()) {
                     PDXObject xobj = resources.getXObject(name);
                     if (xobj instanceof PDImageXObject img) {
                         try {
                             BufferedImage bimg = img.getImage();
-                            if (bimg == null) continue;
-                            if (bimg.getWidth() < 64 || bimg.getHeight() < 64) continue;
-                            
+                            if (bimg == null)
+                                continue;
+                            if (bimg.getWidth() < 64 || bimg.getHeight() < 64)
+                                continue;
+
                             BufferedImage scaled = bimg;
                             if (scale < 1.0) {
                                 int newW = Math.max(1, (int) Math.round(bimg.getWidth() * scale));
@@ -406,24 +464,34 @@ public class PDFCompressionService extends BasePDFService {
                                 g2.dispose();
                                 scaled = resized;
                             }
-                            
+
                             PDImageXObject jpegImg = JPEGFactory.createFromImage(doc, scaled, jpegQuality);
                             resources.put(name, jpegImg);
                             replacedOnPage++;
                         } catch (Throwable t) {
-                            System.err.println("[CompressTarget] Page " + pageIndex + " image re-encode skip: " + t.getMessage());
+                            System.err.println(
+                                    "[CompressTarget] Page " + pageIndex + " image re-encode skip: " + t.getMessage());
                         }
                     }
                 }
                 log("Page " + pageIndex + ": replaced " + replacedOnPage + " image(s)");
                 pageIndex++;
             }
-            
+
             String base = pdfFile.getName().replaceAll("(?i)\\.pdf$", "");
             out = File.createTempFile(base + "_cand_", ".pdf", new File(outputDirectory));
+
+            // Remove encryption dictionary if the original was encrypted
+            if (password != null && !password.trim().isEmpty()) {
+                doc.setAllSecurityToBeRemoved(true);
+            }
+
             doc.save(out);
+        } finally {
+            doc.close();
         }
-        log("Candidate written: " + (out.length() / 1024) + " KB with params quality=" + jpegQuality + ", scale=" + scale);
+        log("Candidate written: " + (out.length() / 1024) + " KB with params quality=" + jpegQuality + ", scale="
+                + scale);
         return out;
     }
 }

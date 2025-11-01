@@ -1,6 +1,8 @@
 package com.pdfutilities.app.controller;
 
 import com.pdfutilities.app.model.FileItem;
+import com.pdfutilities.app.model.SavedPassword;
+import com.pdfutilities.app.service.PasswordManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,14 +12,23 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ListView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -137,11 +148,20 @@ public class MainController implements Initializable {
 
     // Data
     private ObservableList<FileItem> fileItems = FXCollections.observableArrayList();
+    private PasswordManager passwordManager;
 
     // UI state
     @FXML
     private CheckBox showPasswordsCheckBox;
     private final BooleanProperty showPasswords = new SimpleBooleanProperty(false);
+
+    // Password management components
+    @FXML
+    private ComboBox<SavedPassword> savedPasswordsComboBox;
+    @FXML
+    private Button savePasswordButton;
+    @FXML
+    private Button managePasswordsButton;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -168,13 +188,15 @@ public class MainController implements Initializable {
             // Ensure simple text header without a toggle
             passwordColumn.setText("Password");
             passwordColumn.setGraphic(null);
-            // Custom cell: text area + inline eye toggle on the right; supports
+            // Custom cell: text area + inline eye toggle + dropdown on the right; supports
             // edit/display
             passwordColumn.setCellFactory(col -> new TableCell<>() {
                 private final PasswordField maskedEditor = new PasswordField();
                 private final TextField plainEditor = new TextField();
                 private final Label displayLabel = new Label();
-                private final ToggleButton rowEye = new ToggleButton("\uD83D\uDC41");
+                private final ToggleButton rowEye = new ToggleButton("👁");
+                private final Button dropdownButton = new Button("🔽");
+                private final Button saveButton = new Button("💾");
                 private final HBox displayBox = new HBox(6);
                 private final HBox editBox = new HBox(6);
 
@@ -185,7 +207,7 @@ public class MainController implements Initializable {
                         if (!is) {
                             javafx.application.Platform.runLater(() -> {
                                 var fo = currentFocusOwner();
-                                if (fo == rowEye || fo == plainEditor)
+                                if (fo == rowEye || fo == plainEditor || fo == dropdownButton || fo == saveButton)
                                     return;
                                 commitEdit(maskedEditor.getText());
                             });
@@ -198,7 +220,7 @@ public class MainController implements Initializable {
                         if (!is) {
                             javafx.application.Platform.runLater(() -> {
                                 var fo = currentFocusOwner();
-                                if (fo == rowEye || fo == maskedEditor)
+                                if (fo == rowEye || fo == maskedEditor || fo == dropdownButton || fo == saveButton)
                                     return;
                                 commitEdit(plainEditor.getText());
                             });
@@ -207,6 +229,9 @@ public class MainController implements Initializable {
 
                     rowEye.setFocusTraversable(false);
                     rowEye.setTooltip(new Tooltip("Show/Hide password (row)"));
+                    // Match styling with dropdown button for consistent sizing
+                    rowEye.setStyle(
+                            "-fx-font-size: 16px; -fx-min-width: 26px; -fx-max-width: 26px; -fx-pref-width: 26px; -fx-min-height: 24px; -fx-max-height: 24px; -fx-pref-height: 24px; -fx-padding: 2 4; -fx-content-display: CENTER;");
                     rowEye.setOnAction(e -> {
                         int row = getIndex();
                         if (row < 0 || row >= getTableView().getItems().size())
@@ -242,23 +267,155 @@ public class MainController implements Initializable {
                         }
                     });
 
+                    // Configure dropdown button
+                    dropdownButton.setFocusTraversable(false);
+                    dropdownButton.setTooltip(new Tooltip("Select saved password"));
+                    // Match styling with the eye toggle button exactly
+                    dropdownButton.setStyle(
+                            "-fx-font-size: 16px; -fx-min-width: 26px; -fx-max-width: 26px; -fx-pref-width: 26px; -fx-min-height: 24px; -fx-max-height: 24px; -fx-pref-height: 24px; -fx-padding: 2 4; -fx-content-display: CENTER;");
+                    dropdownButton.setOnAction(e -> {
+                        int row = getIndex();
+                        if (row < 0 || row >= getTableView().getItems().size())
+                            return;
+                        FileItem fi = getTableView().getItems().get(row);
+                        if (fi == null || !fi.isEncrypted())
+                            return;
+
+                        // Show context menu with saved passwords
+                        ContextMenu contextMenu = new ContextMenu();
+
+                        // Add saved passwords
+                        for (SavedPassword savedPassword : MainController.this.passwordManager.getSavedPasswords()) {
+                            MenuItem menuItem = new MenuItem(savedPassword.getName());
+                            menuItem.setOnAction(event -> {
+                                fi.setPassword(savedPassword.getPassword());
+                                savedPassword.markAsUsed();
+                                // Note: PasswordManager doesn't have a public savePasswords method
+                                // The lastUsed timestamp will be updated when the password is used
+                                updateDisplay(savedPassword.getPassword());
+                                showToast("Password applied: " + savedPassword.getName(), ToastType.SUCCESS);
+                            });
+                            contextMenu.getItems().add(menuItem);
+                        }
+
+                        // Add separator and manage option
+                        if (!contextMenu.getItems().isEmpty()) {
+                            contextMenu.getItems().add(new SeparatorMenuItem());
+                        }
+
+                        MenuItem manageItem = new MenuItem("Manage Passwords...");
+                        manageItem.setOnAction(event -> {
+                            boolean okClicked = PasswordManagementDialogController.showDialog(
+                                    (Stage) getTableView().getScene().getWindow());
+                            if (okClicked) {
+                                showToast("Password management completed", ToastType.SUCCESS);
+                            }
+                        });
+                        contextMenu.getItems().add(manageItem);
+
+                        // Show context menu
+                        contextMenu.show(dropdownButton, javafx.geometry.Side.BOTTOM, 0, 0);
+                    });
+
+                    // Configure save button
+                    saveButton.setFocusTraversable(false);
+                    saveButton.setTooltip(new Tooltip("Save password to password manager"));
+                    saveButton.setStyle(
+                            "-fx-font-size: 16px; -fx-min-width: 26px; -fx-max-width: 26px; -fx-pref-width: 26px; -fx-min-height: 24px; -fx-max-height: 24px; -fx-pref-height: 24px; -fx-padding: 2 4; -fx-content-display: CENTER;");
+                    saveButton.setOnAction(e -> {
+                        int row = getIndex();
+                        if (row < 0 || row >= getTableView().getItems().size())
+                            return;
+                        FileItem fi = getTableView().getItems().get(row);
+                        if (fi == null || !fi.isEncrypted())
+                            return;
+
+                        // Get password from editor if editing, otherwise from FileItem
+                        String password;
+                        if (isEditing()) {
+                            // If we're in edit mode, get password from the active editor
+                            password = (editBox.getChildren().get(0) == plainEditor)
+                                    ? plainEditor.getText()
+                                    : maskedEditor.getText();
+
+                            // Also commit the edit so password is saved to FileItem
+                            commitEdit(password);
+                        } else {
+                            // If not editing, get password from FileItem
+                            password = fi.getPassword();
+                        }
+
+                        if (password == null || password.trim().isEmpty()) {
+                            showToast("Please enter a password first", ToastType.WARNING);
+                            return;
+                        }
+
+                        // Open shared save password dialog
+                        MainController.this.showSavePasswordDialogShared(password);
+                    });
+
                     displayLabel.setMaxWidth(Double.MAX_VALUE);
                     HBox.setHgrow(displayLabel, javafx.scene.layout.Priority.ALWAYS);
                     HBox.setHgrow(maskedEditor, javafx.scene.layout.Priority.ALWAYS);
                     HBox.setHgrow(plainEditor, javafx.scene.layout.Priority.ALWAYS);
 
-                    displayBox.getChildren().addAll(displayLabel, rowEye);
-                    editBox.getChildren().addAll(maskedEditor, rowEye);
+                    displayBox.getChildren().addAll(displayLabel, dropdownButton, saveButton, rowEye);
+                    editBox.getChildren().addAll(maskedEditor, dropdownButton, saveButton, rowEye);
                 }
 
                 @Override
                 public void startEdit() {
-                    super.startEdit();
                     if (isEmpty())
                         return;
+
+                    int row = getIndex();
+                    if (row < 0 || row >= getTableView().getItems().size()) {
+                        return;
+                    }
+                    FileItem fi = getTableView().getItems().get(row);
+
+                    // Only allow editing if the PDF is encrypted
+                    if (fi == null || !fi.isEncrypted()) {
+                        // Show a toast message instead of allowing edit
+                        javafx.application.Platform.runLater(() -> {
+                            showToast("This PDF is not password protected - no password needed", ToastType.INFO);
+                        });
+                        return;
+                    }
+
+                    super.startEdit();
                     String val = getItem();
-                    FileItem fi = getTableView().getItems().get(getIndex());
                     boolean reveal = showPasswords.get() || (fi != null && fi.isRevealPassword());
+
+                    // Apply highlighting to editors for encrypted files
+                    if (fi != null && fi.isEncrypted()) {
+                        maskedEditor.getStyleClass().add("password-field-highlighted");
+                        plainEditor.getStyleClass().add("password-field-highlighted");
+                        editBox.getStyleClass().add("password-field-highlighted");
+
+                        // Add tooltips to editors
+                        if (maskedEditor.getTooltip() == null) {
+                            maskedEditor.setTooltip(new Tooltip("This PDF is password protected - enter password"));
+                        }
+                        if (plainEditor.getTooltip() == null) {
+                            plainEditor.setTooltip(new Tooltip("This PDF is password protected - enter password"));
+                        }
+
+                        // Show dropdown button and save button for encrypted files
+                        dropdownButton.setVisible(true);
+                        saveButton.setVisible(true);
+                    } else {
+                        maskedEditor.getStyleClass().removeAll("password-field-highlighted");
+                        plainEditor.getStyleClass().removeAll("password-field-highlighted");
+                        editBox.getStyleClass().removeAll("password-field-highlighted");
+                        maskedEditor.setTooltip(null);
+                        plainEditor.setTooltip(null);
+
+                        // Hide dropdown button and save button for non-encrypted files
+                        dropdownButton.setVisible(false);
+                        saveButton.setVisible(false);
+                    }
+
                     if (reveal) {
                         // Switch editor to plain text by temporarily swapping
                         editBox.getChildren().set(0, plainEditor);
@@ -313,7 +470,46 @@ public class MainController implements Initializable {
                     }
                     boolean reveal = showPasswords.get() || (fi != null && fi.isRevealPassword());
                     rowEye.setSelected(fi != null && fi.isRevealPassword());
-                    displayLabel.setText(reveal ? (value == null ? "" : value) : mask(value));
+
+                    // Apply highlighting and text for encrypted files
+                    if (fi != null && fi.isEncrypted()) {
+                        displayLabel.setText(reveal ? (value == null ? "" : value) : mask(value));
+                        displayLabel.getStyleClass().removeAll("password-not-required");
+                        displayLabel.getStyleClass().add("password-label-highlighted");
+                        displayBox.getStyleClass().add("password-field-highlighted");
+                        getStyleClass().add("password-cell-highlighted");
+
+                        // Show the eye button, dropdown button, and save button for encrypted files
+                        rowEye.setVisible(true);
+                        dropdownButton.setVisible(true);
+                        saveButton.setVisible(true);
+
+                        // Add tooltip to indicate password is required
+                        if (displayLabel.getTooltip() == null) {
+                            Tooltip tooltip = new Tooltip(
+                                    "This PDF is password protected - enter password or select from saved passwords");
+                            displayLabel.setTooltip(tooltip);
+                        }
+                    } else {
+                        // For non-encrypted files, show "Not Required" and disable editing
+                        displayLabel.setText("Not Required");
+                        displayLabel.getStyleClass().add("password-not-required");
+                        displayLabel.getStyleClass().removeAll("password-label-highlighted");
+                        displayBox.getStyleClass().removeAll("password-field-highlighted");
+                        getStyleClass().removeAll("password-cell-highlighted");
+
+                        // Add tooltip to indicate password is not needed
+                        if (displayLabel.getTooltip() == null) {
+                            Tooltip tooltip = new Tooltip("This PDF is not password protected");
+                            displayLabel.setTooltip(tooltip);
+                        }
+
+                        // Hide the eye button, dropdown button, and save button for non-encrypted files
+                        rowEye.setVisible(false);
+                        dropdownButton.setVisible(false);
+                        saveButton.setVisible(false);
+                    }
+
                     setGraphic(displayBox);
                     setText(null);
                 }
@@ -331,6 +527,72 @@ public class MainController implements Initializable {
                         return "";
                     return "•".repeat(Math.min(value.length(), 12));
                 }
+
+                private void showSavePasswordDialog(String password) {
+                    // Create custom dialog; validate without closing on errors
+                    Dialog<Void> dialog = new Dialog<>();
+                    dialog.setTitle("Save Password");
+                    dialog.setHeaderText("Save Password");
+
+                    // Set button types
+                    ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+                    dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+                    // Layout with fixed pref width to keep size stable
+                    VBox vbox = new VBox(10);
+                    vbox.setPadding(new Insets(20));
+                    vbox.setPrefWidth(420);
+
+                    Label instructionLabel = new Label("Enter a descriptive name for this password:");
+                    TextField textField = new TextField();
+                    Label errorLabel = new Label();
+                    errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
+                    errorLabel.setWrapText(true);
+                    errorLabel.setVisible(false);
+
+                    vbox.getChildren().addAll(instructionLabel, textField, errorLabel);
+                    dialog.getDialogPane().setContent(vbox);
+                    dialog.getDialogPane().setPrefWidth(440);
+                    dialog.getDialogPane().setMinWidth(Region.USE_PREF_SIZE);
+
+                    // Disable Save when empty
+                    final javafx.scene.Node saveNode = dialog.getDialogPane().lookupButton(saveButtonType);
+                    saveNode.disableProperty().bind(textField.textProperty().isEmpty());
+
+                    // Validate on Save; prevent close on error
+                    saveNode.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+                        String nameRaw = textField.getText();
+                        String name = nameRaw == null ? "" : nameRaw.trim();
+
+                        if (name.isEmpty()) {
+                            errorLabel.setText("Password name cannot be empty");
+                            errorLabel.setVisible(true);
+                            textField.requestFocus();
+                            ev.consume();
+                            return;
+                        }
+
+                        boolean added = MainController.this.passwordManager.addPassword(name, password);
+                        if (!added) {
+                            errorLabel.setText(
+                                    "A password with this name already exists. Please enter a different name.");
+                            errorLabel.setVisible(true);
+                            textField.requestFocus();
+                            textField.selectAll();
+                            ev.consume();
+                            return;
+                        }
+
+                        // Success: refresh any UI and allow close
+                        showToast("Password saved as '" + name + "'", ToastType.SUCCESS);
+                        if (MainController.this.savedPasswordsComboBox != null) {
+                            MainController.this.savedPasswordsComboBox
+                                    .setItems(MainController.this.passwordManager.getSavedPasswords());
+                        }
+                    });
+
+                    dialog.showAndWait();
+                }
             });
             passwordColumn.setEditable(true);
             if (fileTable != null)
@@ -341,6 +603,9 @@ public class MainController implements Initializable {
 
         // Initialize combo boxes
         initializeComboBoxes();
+
+        // Initialize password management
+        initializePasswordManagement();
 
         // Initialize left nav toggle group and sync with tabs
         initializeNavAndTabs();
@@ -408,6 +673,35 @@ public class MainController implements Initializable {
     }
 
     /**
+     * Initialize password management components
+     */
+    private void initializePasswordManagement() {
+        // Initialize password manager
+        passwordManager = new PasswordManager();
+
+        // Initialize saved passwords combo box
+        if (savedPasswordsComboBox != null) {
+            savedPasswordsComboBox.setItems(passwordManager.getSavedPasswords());
+
+            // Handle selection from combo box
+            savedPasswordsComboBox.setOnAction(e -> {
+                SavedPassword selectedPassword = savedPasswordsComboBox.getSelectionModel().getSelectedItem();
+                if (selectedPassword != null) {
+                    // Apply password to selected row in table
+                    FileItem selectedFileItem = fileTable.getSelectionModel().getSelectedItem();
+                    if (selectedFileItem != null) {
+                        selectedFileItem.setPassword(selectedPassword.getPassword());
+                        fileTable.refresh();
+                        showToast("Password applied to " + selectedFileItem.getFileName(), ToastType.SUCCESS);
+                    } else {
+                        showToast("Please select a file first", ToastType.WARNING);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * Handle select files button click
      */
     @FXML
@@ -431,6 +725,9 @@ public class MainController implements Initializable {
                 fileItems.add(fi);
             }
             showToast("Selected " + selectedFiles.size() + " file(s)", ToastType.SUCCESS);
+
+            // Refresh password field highlighting for newly added files
+            refreshPasswordFieldHighlighting();
         }
     }
 
@@ -472,6 +769,53 @@ public class MainController implements Initializable {
     private void handleClearAll() {
         fileItems.clear();
         showToast("All files cleared", ToastType.INFO);
+    }
+
+    /**
+     * Handle save password button click
+     */
+    @FXML
+    private void handleSavePassword() {
+        FileItem selectedFileItem = fileTable.getSelectionModel().getSelectedItem();
+        if (selectedFileItem == null) {
+            showToast("Please select a row in the table first", ToastType.WARNING);
+            return;
+        }
+
+        String password = selectedFileItem.getPassword();
+        if (password == null || password.trim().isEmpty()) {
+            showToast("Please enter a password for the selected row first", ToastType.WARNING);
+            return;
+        }
+
+        // Use shared dialog
+        showSavePasswordDialogShared(password);
+    }
+
+    /**
+     * Handle manage passwords button click
+     */
+    @FXML
+    private void handleManagePasswords() {
+        Stage owner = null;
+        try {
+            if (fileTable != null && fileTable.getScene() != null) {
+                owner = (Stage) fileTable.getScene().getWindow();
+            } else if (selectFilesButton != null && selectFilesButton.getScene() != null) {
+                owner = (Stage) selectFilesButton.getScene().getWindow();
+            }
+        } catch (Exception ignore) {
+        }
+
+        boolean okClicked = PasswordManagementDialogController.showDialog(owner);
+
+        if (okClicked) {
+            // Refresh combo box after management dialog, if present in UI
+            if (savedPasswordsComboBox != null) {
+                savedPasswordsComboBox.setItems(passwordManager.getSavedPasswords());
+            }
+            showToast("Password management completed", ToastType.SUCCESS);
+        }
     }
 
     private void initializeNavAndTabs() {
@@ -546,6 +890,8 @@ public class MainController implements Initializable {
             // Convert using service
             java.util.List<File> inputs = fileItems.stream().map(FileItem::getFile).toList();
             com.pdfutilities.app.service.DocxConversionService svc = new com.pdfutilities.app.service.DocxConversionService();
+            svc.setFilePasswords(createPasswordMap());
+
             boolean ok = svc.execute(inputs, outDir);
             if (ok) {
                 showToast("DOCX created in: " + outDir, ToastType.SUCCESS);
@@ -618,6 +964,7 @@ public class MainController implements Initializable {
             java.util.List<File> inputs = fileItems.stream().map(FileItem::getFile).toList();
             com.pdfutilities.app.service.PDFCompressionService svc = new com.pdfutilities.app.service.PDFCompressionService(
                     level);
+            svc.setFilePasswords(createPasswordMap());
             showToast("Compressing PDFs...", ToastType.INFO);
             boolean ok = svc.execute(inputs, outDir);
             if (ok) {
@@ -686,6 +1033,7 @@ public class MainController implements Initializable {
                 }
 
                 com.pdfutilities.app.service.PDFMergeService svc = new com.pdfutilities.app.service.PDFMergeService();
+                svc.setFilePasswords(createPasswordMap());
                 showToast("Merging PDFs...", ToastType.INFO);
                 boolean ok = svc.execute(inputs, outDir);
                 if (ok) {
@@ -777,6 +1125,7 @@ public class MainController implements Initializable {
 
             showToast("Splitting PDF...", ToastType.INFO);
             java.util.List<File> inputs = fileItems.stream().map(FileItem::getFile).toList();
+            svc.setFilePasswords(createPasswordMap());
             boolean ok = svc.execute(inputs, outDir);
             if (ok) {
                 showToast("Split complete. Files saved to: " + outDir, ToastType.SUCCESS);
@@ -860,6 +1209,7 @@ public class MainController implements Initializable {
             com.pdfutilities.app.service.TextExtractionService svc = new com.pdfutilities.app.service.TextExtractionService();
             svc.setExtractText(wantText);
             svc.setExtractImages(wantImages);
+            svc.setFilePasswords(createPasswordMap());
 
             if (wantText && wantImages) {
                 showToast("Extracting text and images...", ToastType.INFO);
@@ -926,6 +1276,7 @@ public class MainController implements Initializable {
             // Use existing PDFToImageService for page rendering to images (PNG/JPG) based
             // on UI selections
             com.pdfutilities.app.service.PDFToImageService svc = new com.pdfutilities.app.service.PDFToImageService();
+            svc.setFilePasswords(createPasswordMap());
             // Configure from UI if present
             if (imageFormatComboBox != null && imageFormatComboBox.getValue() != null) {
                 String fmt = imageFormatComboBox.getValue();
@@ -1010,6 +1361,23 @@ public class MainController implements Initializable {
         alert.showAndWait();
     }
 
+    // ---------- Helper methods ----------
+
+    /**
+     * Create a map of passwords for encrypted files
+     * 
+     * @return Map of File to password for encrypted files that have passwords
+     */
+    private java.util.Map<File, String> createPasswordMap() {
+        java.util.Map<File, String> passwords = new java.util.HashMap<>();
+        for (FileItem item : fileItems) {
+            if (item.isEncrypted() && item.getPassword() != null && !item.getPassword().trim().isEmpty()) {
+                passwords.put(item.getFile(), item.getPassword());
+            }
+        }
+        return passwords;
+    }
+
     // ---------- Toast utilities ----------
 
     private enum ToastType {
@@ -1039,6 +1407,74 @@ public class MainController implements Initializable {
             }
         }
         return count;
+    }
+
+    /**
+     * Refresh password field highlighting for all rows in the table
+     */
+    private void refreshPasswordFieldHighlighting() {
+        if (fileTable != null) {
+            fileTable.refresh();
+        }
+    }
+
+    // Shared dialog for saving a password by name with inline validation
+    private void showSavePasswordDialogShared(String password) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Save Password");
+        dialog.setHeaderText("Save Password");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(20));
+        vbox.setPrefWidth(420);
+
+        Label instructionLabel = new Label("Enter a descriptive name for this password:");
+        TextField textField = new TextField();
+        Label errorLabel = new Label();
+        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
+        errorLabel.setWrapText(true);
+        errorLabel.setVisible(false);
+
+        vbox.getChildren().addAll(instructionLabel, textField, errorLabel);
+        dialog.getDialogPane().setContent(vbox);
+        dialog.getDialogPane().setPrefWidth(440);
+        dialog.getDialogPane().setMinWidth(Region.USE_PREF_SIZE);
+
+        final javafx.scene.Node saveNode = dialog.getDialogPane().lookupButton(saveButtonType);
+        saveNode.disableProperty().bind(textField.textProperty().isEmpty());
+
+        saveNode.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+            String nameRaw = textField.getText();
+            String name = nameRaw == null ? "" : nameRaw.trim();
+
+            if (name.isEmpty()) {
+                errorLabel.setText("Password name cannot be empty");
+                errorLabel.setVisible(true);
+                textField.requestFocus();
+                ev.consume();
+                return;
+            }
+
+            boolean added = passwordManager.addPassword(name, password);
+            if (!added) {
+                errorLabel.setText("A password with this name already exists. Please enter a different name.");
+                errorLabel.setVisible(true);
+                textField.requestFocus();
+                textField.selectAll();
+                ev.consume();
+                return;
+            }
+
+            showToast("Password saved as '" + name + "'", ToastType.SUCCESS);
+            if (savedPasswordsComboBox != null) {
+                savedPasswordsComboBox.setItems(passwordManager.getSavedPasswords());
+            }
+        });
+
+        dialog.showAndWait();
     }
 
     private void showToast(String message, ToastType type) {

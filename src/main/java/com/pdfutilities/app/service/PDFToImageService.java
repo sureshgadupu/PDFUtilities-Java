@@ -12,7 +12,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Service for converting PDF pages to images (PNG/JPG) with configurable DPI and color mode.
+ * Service for converting PDF pages to images (PNG/JPG) with configurable DPI
+ * and color mode.
  */
 public class PDFToImageService extends BasePDFService {
 
@@ -49,7 +50,8 @@ public class PDFToImageService extends BasePDFService {
     private ImageFormat imageFormat = ImageFormat.PNG;
     private int dpi = 150;
     private ColorMode colorMode = ColorMode.COLOR;
-    private boolean eachPageToSingleImage = true; // true: each page to separate image; false: entire PDF to one long image
+    private boolean eachPageToSingleImage = true; // true: each page to separate image; false: entire PDF to one long
+                                                  // image
 
     public PDFToImageService() {
         super("Convert to Image", "Convert PDF pages into image files");
@@ -105,7 +107,23 @@ public class PDFToImageService extends BasePDFService {
      * Render each page to an individual image file.
      */
     private void convertEachPage(File pdfFile, String outputDirectory) throws IOException {
-        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+        String password = getPassword(pdfFile);
+
+        // Check if file is encrypted but no password provided
+        if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+            System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+            throw new IOException("Cannot convert encrypted file without password: " + pdfFile.getName());
+        }
+
+        PDDocument document;
+        if (password != null && !password.trim().isEmpty()) {
+            document = Loader.loadPDF(pdfFile, password);
+            // Remove encryption dictionary for image conversion
+            document.setAllSecurityToBeRemoved(true);
+        } else {
+            document = Loader.loadPDF(pdfFile);
+        }
+        try {
             PDFRenderer renderer = new PDFRenderer(document);
             String base = stripPdfExt(pdfFile.getName());
 
@@ -116,6 +134,8 @@ public class PDFToImageService extends BasePDFService {
                 writeImage(image, outFile);
                 System.out.println("Saved image: " + outFile.getName());
             }
+        } finally {
+            document.close();
         }
     }
 
@@ -124,7 +144,23 @@ public class PDFToImageService extends BasePDFService {
      * Note: This can be memory intensive for large documents; keep DPI reasonable.
      */
     private void convertEntirePdfToSingleImage(File pdfFile, String outputDirectory) throws IOException {
-        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+        String password = getPassword(pdfFile);
+
+        // Check if file is encrypted but no password provided
+        if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+            System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+            throw new IOException("Cannot convert encrypted file without password: " + pdfFile.getName());
+        }
+
+        PDDocument document;
+        if (password != null && !password.trim().isEmpty()) {
+            document = Loader.loadPDF(pdfFile, password);
+            // Remove encryption dictionary for image conversion
+            document.setAllSecurityToBeRemoved(true);
+        } else {
+            document = Loader.loadPDF(pdfFile);
+        }
+        try {
             PDFRenderer renderer = new PDFRenderer(document);
 
             BufferedImage[] pages = new BufferedImage[document.getNumberOfPages()];
@@ -155,6 +191,8 @@ public class PDFToImageService extends BasePDFService {
             File outFile = new File(outputDirectory, base + "_all." + imageFormat.getExt());
             writeImage(combined, outFile);
             System.out.println("Saved combined image: " + outFile.getName());
+        } finally {
+            document.close();
         }
     }
 
@@ -179,7 +217,8 @@ public class PDFToImageService extends BasePDFService {
 
     private String stripPdfExt(String name) {
         int idx = name.toLowerCase().lastIndexOf(".pdf");
-        if (idx >= 0) return name.substring(0, idx);
+        if (idx >= 0)
+            return name.substring(0, idx);
         return name;
     }
 }

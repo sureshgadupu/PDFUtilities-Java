@@ -1,9 +1,78 @@
 ---
 description: Document major failure points in this project and they were solved.  To be filled by AI.
-globs: 
+globs:
 alwaysApply: false
 ---
+
 ---
-description: Document major failure points in this project and they were solved.  To be filled by AI. 
-globs: 
+
+description: Document major failure points in this project and they were solved. To be filled by AI.
+globs:
+
 ---
+
+# Error Documentation: PDF Utilities App
+
+## Issue: Merge and Compress Functionality Failing with Encrypted Passwords
+
+**Date:** 2025-10-26  
+**Severity:** High  
+**Status:** Resolved
+
+### Problem Description
+
+The merge and compress functionality was failing when encrypted PDF files were used, even when passwords were provided. The application would throw exceptions and fail to process encrypted PDFs.
+
+### Root Cause Analysis
+
+The issue was in the **password validation gap** in the service layer:
+
+1. **Password Detection**: `PdfSecurityUtils.isPasswordProtected()` correctly identified encrypted PDFs
+2. **UI Layer**: Files were correctly marked as `encrypted = true` when password-protected
+3. **Password Map Creation**: Only encrypted files with passwords were included in the password map
+4. **Service Layer Bug**: Services didn't validate that encrypted files had passwords before attempting to load them
+
+**The specific problem**: Services would attempt to load encrypted PDFs without passwords using `Loader.loadPDF(pdfFile)` when `getPassword(file)` returned `null` or empty, causing `IOException` failures.
+
+### Solution Implemented
+
+Added password validation checks in all PDF service classes before attempting to load PDFs:
+
+```java
+// Check if file is encrypted but no password provided
+if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+    System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+    // Handle gracefully instead of failing
+    continue; // or throw IOException with descriptive message
+}
+```
+
+**Additional Fix**: Fixed return value logic in services to properly report failures when encrypted files are skipped:
+
+- **PDFCompressionService**: Now sets `allSuccessful = false` when encrypted files without passwords are skipped
+- **PDFMergeService**: Now filters out encrypted files without passwords before processing and fails if less than 2 files remain
+
+**Final Fix**: Resolved encryption dictionary issue when saving decrypted PDFs:
+
+- Added `doc.setAllSecurityToBeRemoved(true)` to all services when loading encrypted PDFs with passwords
+- This removes the encryption dictionary before saving, preventing "PDF contains an encryption dictionary" errors
+- Applied to: PDFMergeService, PDFCompressionService, TextExtractionService, PDFSplitService, PDFToImageService, DocxConversionService
+
+### Files Modified
+
+- `src/main/java/com/pdfutilities/app/service/PDFMergeService.java`
+- `src/main/java/com/pdfutilities/app/service/PDFCompressionService.java`
+- `src/main/java/com/pdfutilities/app/service/TextExtractionService.java`
+- `src/main/java/com/pdfutilities/app/service/PDFSplitService.java`
+- `src/main/java/com/pdfutilities/app/service/PDFToImageService.java`
+- `src/main/java/com/pdfutilities/app/service/DocxConversionService.java`
+
+### Testing
+
+- Compilation successful with no errors
+- All services now handle encrypted files gracefully
+- Proper error messages logged for debugging
+
+### Prevention
+
+This issue was caused by insufficient validation in the service layer. Future PDF processing services should always validate password requirements before attempting to load encrypted files.

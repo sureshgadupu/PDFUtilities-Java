@@ -41,6 +41,12 @@ Structure:
                         <MenuItem text="Convert to Image" onAction="#handleConvertToImage"/>
                     </items>
                 </Menu>
+                <Menu text="Passwords">
+                    <items>
+                        <MenuItem text="Save Current Password" onAction="#handleSavePassword"/>
+                        <MenuItem text="Manage Passwords" onAction="#handleManagePasswords"/>
+                    </items>
+                </Menu>
                 <Menu text="Help">
                     <items>
                         <MenuItem text="About" onAction="#handleAbout"/>
@@ -122,6 +128,7 @@ Structure:
                                  -fx-min-height: 35px;
                              </style>
                          </CheckBox>
+                        <Separator/>
                     </items>
                 </ToolBar>
 

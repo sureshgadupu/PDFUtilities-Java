@@ -83,7 +83,23 @@ public class PDFSplitService extends BasePDFService {
      * @throws IOException if an I/O error occurs
      */
     private void splitPdf(File pdfFile, String outputDirectory) throws IOException {
-        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+        String password = getPassword(pdfFile);
+
+        // Check if file is encrypted but no password provided
+        if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+            System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+            throw new IOException("Cannot split encrypted file without password: " + pdfFile.getName());
+        }
+
+        PDDocument document;
+        if (password != null && !password.trim().isEmpty()) {
+            document = Loader.loadPDF(pdfFile, password);
+            // Remove encryption dictionary for splitting
+            document.setAllSecurityToBeRemoved(true);
+        } else {
+            document = Loader.loadPDF(pdfFile);
+        }
+        try {
 
             switch (splitMode) {
                 case EVERY_PAGE:
@@ -100,6 +116,8 @@ public class PDFSplitService extends BasePDFService {
                     break;
             }
 
+        } finally {
+            document.close();
         }
     }
 

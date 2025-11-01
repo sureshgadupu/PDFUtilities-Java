@@ -14,7 +14,6 @@ import org.apache.poi.xwpf.usermodel.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +22,11 @@ import java.util.List;
  * Service for converting PDF files to DOCX format
  */
 public class DocxConversionService extends BasePDFService {
-    
+
     public DocxConversionService() {
         super("Convert to DocX", "Convert PDF files to editable Word documents");
     }
-    
+
     @Override
     public boolean execute(List<File> inputFiles, String outputDirectory) {
         if (!validateInputFiles(inputFiles) || !createOutputDirectory(outputDirectory)) {
@@ -47,10 +46,11 @@ public class DocxConversionService extends BasePDFService {
 
         return allSuccessful;
     }
-    
+
     /**
      * Convert a single PDF file to DOCX
-     * @param pdfFile the PDF file to convert
+     * 
+     * @param pdfFile         the PDF file to convert
      * @param outputDirectory the output directory
      * @throws IOException if an I/O error occurs
      */
@@ -60,13 +60,27 @@ public class DocxConversionService extends BasePDFService {
         FileOutputStream fos = null;
 
         try {
-            // Load PDF (PDFBox 3.x API)
-            pdf = Loader.loadPDF(pdfFile);
+            // Load PDF (PDFBox 3.x API) with password if available
+            String password = getPassword(pdfFile);
+
+            // Check if file is encrypted but no password provided
+            if (PdfSecurityUtils.isPasswordProtected(pdfFile) && (password == null || password.trim().isEmpty())) {
+                System.err.println("Skipping encrypted file " + pdfFile.getName() + " - no password provided");
+                throw new IOException("Cannot convert encrypted file without password: " + pdfFile.getName());
+            }
+
+            if (password != null && !password.trim().isEmpty()) {
+                pdf = Loader.loadPDF(pdfFile, password);
+                // Remove encryption dictionary for DOCX conversion
+                pdf.setAllSecurityToBeRemoved(true);
+            } else {
+                pdf = Loader.loadPDF(pdfFile);
+            }
 
             // 1) Extract text with preserved line breaks (more editable-friendly)
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true); // helps with reading order
-            stripper.setLineSeparator("\n");  // ensure line breaks are explicit
+            stripper.setLineSeparator("\n"); // ensure line breaks are explicit
             String text = stripper.getText(pdf);
 
             // 2) Create DOCX with some basic styles
@@ -81,7 +95,8 @@ public class DocxConversionService extends BasePDFService {
             titleR.setFontSize(16);
 
             // Body text: preserve line breaks; split by single newline into runs
-            // but merge consecutive blank lines into one empty paragraph to avoid too much spacing
+            // but merge consecutive blank lines into one empty paragraph to avoid too much
+            // spacing
             String[] lines = text.split("\\r?\\n");
             List<String> currentPara = new ArrayList<>();
             for (String line : lines) {
@@ -113,9 +128,21 @@ public class DocxConversionService extends BasePDFService {
 
             System.out.println("Converted (editable) " + pdfFile.getName() + " -> " + out.getName());
         } finally {
-            if (pdf != null) try { pdf.close(); } catch (IOException ignored) {}
-            if (docx != null) try { docx.close(); } catch (IOException ignored) {}
-            if (fos != null) try { fos.close(); } catch (IOException ignored) {}
+            if (pdf != null)
+                try {
+                    pdf.close();
+                } catch (IOException ignored) {
+                }
+            if (docx != null)
+                try {
+                    docx.close();
+                } catch (IOException ignored) {
+                }
+            if (fos != null)
+                try {
+                    fos.close();
+                } catch (IOException ignored) {
+                }
         }
     }
 
@@ -138,7 +165,8 @@ public class DocxConversionService extends BasePDFService {
     }
 
     /**
-     * Best-effort image extraction: walks pages/resources and appends images to DOCX after text.
+     * Best-effort image extraction: walks pages/resources and appends images to
+     * DOCX after text.
      * Images are inserted inline with a small caption indicating the page.
      */
     private void appendExtractedImages(PDDocument pdf, XWPFDocument docx) throws IOException {
@@ -179,18 +207,19 @@ public class DocxConversionService extends BasePDFService {
                     }
                     // target width = 6 inches -> EMUs
                     double targetWidthInch = 6.0;
-                    int targetWidth = (int) Units.toEMU(targetWidthInch * 72); // convert inches->points->EMUs later handled by API
+                    int targetWidth = (int) Units.toEMU(targetWidthInch * 72); // convert inches->points->EMUs later
+                                                                               // handled by API
                     // Maintain aspect ratio for height (approximate via EMUs directly with Units)
                     double aspect = (double) pxHeight / (double) pxWidth;
                     int targetHeight = (int) Units.toEMU(targetWidthInch * 72 * aspect);
 
                     try {
                         r.addPicture(
-                            new java.io.ByteArrayInputStream(pngBytes),
-                            imgType,
-                            "extracted-image.png",
-                            Units.toEMU(6.0 * 72),          // width in EMUs (approx via 6in * 72dpi to EMUs)
-                            Units.toEMU(6.0 * 72 * aspect)  // height in EMUs
+                                new java.io.ByteArrayInputStream(pngBytes),
+                                imgType,
+                                "extracted-image.png",
+                                Units.toEMU(6.0 * 72), // width in EMUs (approx via 6in * 72dpi to EMUs)
+                                Units.toEMU(6.0 * 72 * aspect) // height in EMUs
                         );
                     } catch (InvalidFormatException ife) {
                         // Skip problematic image but continue conversion

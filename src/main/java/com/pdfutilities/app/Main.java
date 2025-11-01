@@ -20,6 +20,10 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         scene = new Scene(loadFXML("main"), 1200, 800);
+
+        // Load CSS styles
+        scene.getStylesheets().add(getClass().getResource("/css/password-highlight.css").toExternalForm());
+
         stage.setScene(scene);
         stage.setTitle("PDF Utilities - All-in-One PDF Tool");
 
