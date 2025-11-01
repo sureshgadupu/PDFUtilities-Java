@@ -170,6 +170,33 @@ public class MainController implements Initializable {
         fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
+        // Add tooltip to file name column to show full file path
+        fileNameColumn.setCellFactory(col -> new TableCell<FileItem, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    // Get the FileItem and set tooltip with full path
+                    int index = getIndex();
+                    if (index >= 0 && index < getTableView().getItems().size()) {
+                        FileItem fileItem = getTableView().getItems().get(index);
+                        if (fileItem != null && fileItem.getFile() != null) {
+                            String fullPath = fileItem.getFile().getAbsolutePath();
+                            setTooltip(new Tooltip(fullPath));
+                        } else {
+                            setTooltip(null);
+                        }
+                    } else {
+                        setTooltip(null);
+                    }
+                }
+            }
+        });
+
         // Set columns to share space with percentages: 40%, 10%, 10%, 40%
         fileNameColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.50));
         fileSizeColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.10));
@@ -194,6 +221,8 @@ public class MainController implements Initializable {
             passwordColumn.prefWidthProperty().bind(fileTable.widthProperty().multiply(0.30));
             // Ensure simple text header without a toggle
             passwordColumn.setText("Password");
+            passwordColumn.setResizable(false);
+            ;
             passwordColumn.setGraphic(null);
             // Custom cell: text area + inline eye toggle + dropdown on the right; supports
             // edit/display
