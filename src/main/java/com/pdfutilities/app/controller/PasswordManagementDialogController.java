@@ -9,8 +9,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
@@ -55,6 +57,12 @@ public class PasswordManagementDialogController {
 
     @FXML
     private ToggleButton showPasswordsToggle;
+
+    @FXML
+    private Button importButton;
+
+    @FXML
+    private Button exportButton;
 
     private PasswordManager passwordManager;
     private Stage dialogStage;
@@ -269,6 +277,116 @@ public class PasswordManagementDialogController {
     @FXML
     private void handleCancel() {
         dialogStage.close();
+    }
+
+    /**
+     * Handle Export button click
+     */
+    @FXML
+    private void handleExport() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Passwords");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("All Files", "*.*"));
+        fileChooser.setInitialFileName("pdf_utilities_passwords.json");
+
+        java.io.File file = fileChooser.showSaveDialog(dialogStage);
+        if (file != null) {
+            try {
+                Path filePath = file.toPath();
+                if (passwordManager.exportPasswords(filePath)) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Export Successful");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Passwords exported successfully to:\n" + file.getAbsolutePath());
+                    alert.showAndWait();
+                } else {
+                    showAlert("Export Failed", "Failed to export passwords. Please check file permissions.");
+                }
+            } catch (Exception e) {
+                showAlert("Export Error", "Error exporting passwords: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Handle Import button click
+     */
+    @FXML
+    private void handleImport() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import Passwords");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("All Files", "*.*"));
+
+        java.io.File file = fileChooser.showOpenDialog(dialogStage);
+        if (file != null) {
+            try {
+                // Ask user for import mode
+                Alert modeAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                modeAlert.setTitle("Import Mode");
+                modeAlert.setHeaderText("Choose Import Mode");
+                modeAlert.setContentText("How would you like to import passwords?\n\n" +
+                        "Merge: Add imported passwords, skip duplicates\n" +
+                        "Replace: Replace all existing passwords with imported ones");
+
+                ButtonType mergeButton = new ButtonType("Merge");
+                ButtonType replaceButton = new ButtonType("Replace");
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                modeAlert.getButtonTypes().setAll(mergeButton, replaceButton, cancelButton);
+
+                java.util.Optional<ButtonType> result = modeAlert.showAndWait();
+                if (result.isEmpty() || result.get() == cancelButton) {
+                    return;
+                }
+
+                boolean mergeMode = result.get() == mergeButton;
+
+                // If replace mode, confirm with user
+                if (!mergeMode) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("Confirm Replace");
+                    confirmAlert.setHeaderText("Replace All Passwords?");
+                    confirmAlert.setContentText(
+                            "This will delete all existing passwords and replace them with imported ones.\n\n" +
+                                    "Are you sure you want to continue?");
+
+                    if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.CANCEL) {
+                        return;
+                    }
+                }
+
+                Path filePath = file.toPath();
+                PasswordManager.ImportResult importResult = passwordManager.importPasswords(filePath, mergeMode);
+
+                if (importResult.success) {
+                    passwordTable.refresh();
+                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                    successAlert.setTitle("Import Successful");
+                    successAlert.setHeaderText(null);
+                    String message = String.format(
+                            "Import completed successfully!\n\n" +
+                                    "Imported: %d password(s)\n" +
+                                    "Skipped: %d password(s)",
+                            importResult.imported,
+                            importResult.skipped);
+                    successAlert.setContentText(message);
+                    successAlert.showAndWait();
+                } else {
+                    showAlert("Import Failed",
+                            importResult.errorMessage != null
+                                    ? importResult.errorMessage
+                                    : "Failed to import passwords. Please check the file format.");
+                }
+            } catch (Exception e) {
+                showAlert("Import Error", "Error importing passwords: " + e.getMessage());
+            }
+        }
     }
 
     /**

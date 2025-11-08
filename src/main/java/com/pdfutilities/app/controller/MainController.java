@@ -325,9 +325,6 @@ public class MainController implements Initializable {
                             MenuItem menuItem = new MenuItem(savedPassword.getName());
                             menuItem.setOnAction(event -> {
                                 fi.setPassword(savedPassword.getPassword());
-                                savedPassword.markAsUsed();
-                                // Note: PasswordManager doesn't have a public savePasswords method
-                                // The lastUsed timestamp will be updated when the password is used
                                 updateDisplay(savedPassword.getPassword());
                                 showToast("Password applied: " + savedPassword.getName(), ToastType.SUCCESS);
                             });

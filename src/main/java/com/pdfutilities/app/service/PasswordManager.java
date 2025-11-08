@@ -144,7 +144,7 @@ public class PasswordManager {
     }
 
     /**
-     * Get password value by name and mark as used
+     * Get password value by name
      * 
      * @param name the name of the password
      * @return the password value if found, null otherwise
@@ -152,8 +152,6 @@ public class PasswordManager {
     public String getPasswordByName(String name) {
         SavedPassword savedPassword = findPasswordByName(name);
         if (savedPassword != null) {
-            savedPassword.markAsUsed();
-            savePasswords(); // Save to update lastUsed timestamp
             return savedPassword.getPassword();
         }
         return null;
@@ -174,15 +172,7 @@ public class PasswordManager {
 
                     savedPasswords.clear();
                     for (SavedPasswordData data : passwordDataList) {
-                        LocalDateTime createdAt = data.createdAt != null
-                                ? LocalDateTime.parse(data.createdAt, DATE_FORMATTER)
-                                : LocalDateTime.now();
-                        LocalDateTime lastUsed = data.lastUsed != null
-                                ? LocalDateTime.parse(data.lastUsed, DATE_FORMATTER)
-                                : null;
-
-                        SavedPassword password = new SavedPassword(normalizeName(data.name), data.password, createdAt,
-                                lastUsed);
+                        SavedPassword password = new SavedPassword(normalizeName(data.name), data.password);
                         savedPasswords.add(password);
                     }
                 }
@@ -207,8 +197,6 @@ public class PasswordManager {
                 SavedPasswordData data = new SavedPasswordData();
                 data.name = password.getName();
                 data.password = password.getPassword();
-                data.createdAt = password.getCreatedAt().format(DATE_FORMATTER);
-                data.lastUsed = password.getLastUsed() != null ? password.getLastUsed().format(DATE_FORMATTER) : null;
                 passwordDataList.add(data);
             }
 
@@ -220,8 +208,244 @@ public class PasswordManager {
         }
     }
 
+    /**
+     * Export passwords to a JSON file
+     * 
+     * @param filePath the path where the JSON file should be saved
+     * @return true if export was successful, false otherwise
+     */
+    public boolean exportPasswords(Path filePath) {
+        try {
+            // Build password entries
+            StringBuilder passwordEntries = new StringBuilder();
+            for (int i = 0; i < savedPasswords.size(); i++) {
+                SavedPassword password = savedPasswords.get(i);
+                passwordEntries.append(String.format("""
+                        {
+                          "name": "%s",
+                          "password": "%s"
+                        }""",
+                        escapeJson(password.getName()),
+                        escapeJson(password.getPassword())));
+
+                if (i < savedPasswords.size() - 1) {
+                    passwordEntries.append(",");
+                }
+                passwordEntries.append("\n");
+            }
+
+            // Use text block for JSON structure
+            String json = String.format("""
+                    {
+                      "version": "1.0",
+                      "exportDate": "%s",
+                      "passwords": [
+                    %s
+                      ]
+                    }
+                    """,
+                    LocalDateTime.now().format(DATE_FORMATTER),
+                    passwordEntries.toString());
+
+            Files.writeString(filePath, json);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error exporting passwords: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Import passwords from a JSON file
+     * 
+     * @param filePath  the path to the JSON file to import
+     * @param mergeMode if true, merge with existing passwords (skip duplicates), if
+     *                  false, replace all
+     * @return ImportResult containing success status and details
+     */
+    public ImportResult importPasswords(Path filePath, boolean mergeMode) {
+        ImportResult result = new ImportResult();
+
+        try {
+            String jsonContent = Files.readString(filePath);
+
+            // Simple JSON parsing (without external library)
+            if (!jsonContent.trim().startsWith("{")) {
+                result.errorMessage = "Invalid JSON format: File does not start with '{'";
+                return result;
+            }
+
+            // Extract passwords array
+            int passwordsStart = jsonContent.indexOf("\"passwords\":");
+            if (passwordsStart == -1) {
+                result.errorMessage = "Invalid JSON format: 'passwords' array not found";
+                return result;
+            }
+
+            int arrayStart = jsonContent.indexOf("[", passwordsStart);
+            if (arrayStart == -1) {
+                result.errorMessage = "Invalid JSON format: passwords array not found";
+                return result;
+            }
+
+            // Parse each password entry
+            List<SavedPassword> importedPasswords = new ArrayList<>();
+            int currentPos = arrayStart + 1;
+
+            while (currentPos < jsonContent.length()) {
+                int entryStart = jsonContent.indexOf("{", currentPos);
+                if (entryStart == -1)
+                    break;
+
+                int entryEnd = jsonContent.indexOf("}", entryStart);
+                if (entryEnd == -1)
+                    break;
+
+                String entry = jsonContent.substring(entryStart, entryEnd + 1);
+
+                // Extract fields
+                String name = extractJsonField(entry, "name");
+                String password = extractJsonField(entry, "password");
+
+                if (name == null || password == null) {
+                    result.skipped++;
+                    currentPos = entryEnd + 1;
+                    continue;
+                }
+
+                SavedPassword importedPassword = new SavedPassword(normalizeName(name), password);
+                importedPasswords.add(importedPassword);
+
+                currentPos = entryEnd + 1;
+            }
+
+            // Apply import based on merge mode
+            if (!mergeMode) {
+                // Replace mode: clear existing and add imported
+                savedPasswords.clear();
+                savedPasswords.addAll(importedPasswords);
+                result.imported = importedPasswords.size();
+            } else {
+                // Merge mode: add only non-duplicates
+                for (SavedPassword imported : importedPasswords) {
+                    boolean exists = false;
+                    for (SavedPassword existing : savedPasswords) {
+                        if (existing.getName().equalsIgnoreCase(imported.getName())) {
+                            exists = true;
+                            result.skipped++;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        savedPasswords.add(imported);
+                        result.imported++;
+                    }
+                }
+            }
+
+            savePasswords();
+            result.success = true;
+            return result;
+
+        } catch (Exception e) {
+            result.errorMessage = "Error importing passwords: " + e.getMessage();
+            System.err.println(result.errorMessage);
+            return result;
+        }
+    }
+
+    /**
+     * Extract a field value from a JSON object string
+     */
+    private String extractJsonField(String json, String fieldName) {
+        String searchPattern = "\"" + fieldName + "\"";
+        int fieldIndex = json.indexOf(searchPattern);
+        if (fieldIndex == -1)
+            return null;
+
+        int valueStart = json.indexOf(":", fieldIndex) + 1;
+        // Skip whitespace
+        while (valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart))) {
+            valueStart++;
+        }
+
+        if (valueStart >= json.length())
+            return null;
+
+        // Check if value is null
+        String remaining = json.substring(valueStart).trim();
+        if (remaining.startsWith("null")) {
+            return null;
+        }
+
+        // Check if value is a string (starts with ")
+        if (json.charAt(valueStart) == '"') {
+            valueStart++; // Skip opening quote
+            // Find closing quote, handling escaped quotes
+            StringBuilder value = new StringBuilder();
+            for (int i = valueStart; i < json.length(); i++) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {
+                    // Handle escape sequences
+                    char next = json.charAt(i + 1);
+                    if (next == '"' || next == '\\' || next == 'n' || next == 'r' || next == 't') {
+                        value.append(c).append(next);
+                        i++; // Skip next char as it's part of escape sequence
+                    } else {
+                        value.append(c);
+                    }
+                } else if (c == '"') {
+                    // Found closing quote
+                    return unescapeJson(value.toString());
+                } else {
+                    value.append(c);
+                }
+            }
+            // No closing quote found
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Escape special characters for JSON
+     */
+    private String escapeJson(String str) {
+        if (str == null)
+            return "";
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    /**
+     * Unescape JSON special characters
+     */
+    private String unescapeJson(String str) {
+        if (str == null)
+            return "";
+        return str.replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+                .replace("\\n", "\n")
+                .replace("\\r", "\r")
+                .replace("\\t", "\t");
+    }
+
     private String normalizeName(String name) {
         return name == null ? null : name.trim().toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Result class for import operations
+     */
+    public static class ImportResult {
+        public boolean success = false;
+        public int imported = 0;
+        public int skipped = 0;
+        public String errorMessage = null;
     }
 
     /**
@@ -231,7 +455,5 @@ public class PasswordManager {
         private static final long serialVersionUID = 1L;
         String name;
         String password;
-        String createdAt;
-        String lastUsed;
     }
 }
