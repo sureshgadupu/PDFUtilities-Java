@@ -29,7 +29,7 @@ public class Main extends Application {
 
         // Set application icon
         try {
-            Image appIcon = new Image(getClass().getResourceAsStream("/images/tools.png"));
+            Image appIcon = new Image(getClass().getResourceAsStream("/images/app.png"));
             stage.getIcons().add(appIcon);
         } catch (Exception e) {
             System.err.println("Could not load application icon: " + e.getMessage());
