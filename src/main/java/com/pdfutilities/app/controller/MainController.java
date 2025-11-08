@@ -1387,11 +1387,36 @@ public class MainController implements Initializable {
      */
     @FXML
     private void handleAbout() {
+        String version = getApplicationVersion();
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("About PDF Utilities");
         alert.setHeaderText("PDF Utilities App");
-        alert.setContentText("Version 1.0.0\n\nA comprehensive tool for PDF manipulation.");
+        alert.setContentText("Version " + version + "\n\nA comprehensive tool for PDF manipulation.");
         alert.showAndWait();
+    }
+
+    /**
+     * Get the application version from Maven-generated properties file
+     * 
+     * @return the application version, or "Unknown" if not found
+     */
+    private String getApplicationVersion() {
+        try {
+            java.util.Properties properties = new java.util.Properties();
+            java.io.InputStream inputStream = getClass().getClassLoader()
+                    .getResourceAsStream("META-INF/maven/com.pdfutilities/pdf-utilities-app/pom.properties");
+
+            if (inputStream != null) {
+                properties.load(inputStream);
+                String version = properties.getProperty("version");
+                if (version != null && !version.isEmpty()) {
+                    return version;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore exceptions and return default version
+        }
+        return "Unknown";
     }
 
     // ---------- Helper methods ----------

@@ -7,7 +7,7 @@
 
     <groupId>com.pdfutilities</groupId>
     <artifactId>pdf-utilities-app</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>PDF Utilities App</name>
@@ -24,7 +24,7 @@
         <slf4j.version>2.0.17</slf4j.version>
         <!-- jpackage properties -->
         <app.name>PDF Utilities</app.name>
-        <app.version>1.0.0</app.version>
+        <app.version>1.0.1</app.version>
         <app.main.class>com.pdfutilities.app.Main</app.main.class>
         <app.modules>javafx.controls,javafx.fxml</app.modules>
         <staging.directory>${project.build.directory}/staging</staging.directory>
@@ -207,7 +207,7 @@
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -260,7 +260,7 @@
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -308,7 +308,7 @@
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -362,7 +362,7 @@
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -405,7 +405,7 @@
                                 <argument>--name</argument>
                                 <argument>pdf-utilities</argument> <!-- lowercase for debian -->
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -461,7 +461,7 @@
                                 <argument>--name</argument>
                                 <argument>pdf-utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>
@@ -517,7 +517,7 @@
                                 <argument>--name</argument>
                                 <argument>PDF Utilities</argument>
                                 <argument>--app-version</argument>
-                                <argument>1.0.0</argument>
+                                <argument>1.0.1</argument>
                                 <argument>--main-class</argument>
                                 <argument>com.pdfutilities.app.Main</argument>
                                 <argument>--main-jar</argument>

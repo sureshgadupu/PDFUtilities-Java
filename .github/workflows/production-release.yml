@@ -149,11 +149,11 @@ jobs:
           cp pom.xml pom.xml.backup
 
           # Use a simpler, more reliable approach with sed
-          # Update main project version - be very specific with context
-          sed -i.bak 's|    <version>1\.0\.0</version>|    <version>'"$VERSION"'</version>|' pom.xml
+          # Update main project version - match any version number
+          sed -i.bak 's|    <version>[0-9]\+\.[0-9]\+\.[0-9]\+\(-[^<]*\)\?</version>|    <version>'"$VERSION"'</version>|' pom.xml
 
-          # Update app.version property - be very specific with context
-          sed -i.bak 's|        <app\.version>1\.0\.0</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
+          # Update app.version property - match any version number
+          sed -i.bak 's|        <app\.version>[0-9]\+\.[0-9]\+\.[0-9]\+\(-[^<]*\)\?</app\.version>|        <app.version>'"$VERSION"'</app.version>|' pom.xml
 
           # Update all hardcoded app-version arguments in jpackage plugin configurations
           # Match the XML structure (<argument>--app-version</argument> then next <argument>value</argument>)
@@ -288,11 +288,11 @@ jobs:
           $nextIsAppVersionValue = $false
           for ($i = 0; $i -lt $lines.Count; $i++) {
             $line = $lines[$i]
-            if ($line -match '^    <version>1\.0\.0</version>$') {
+            if ($line -match '^    <version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?</version>$') {
               $lines[$i] = "    <version>$VERSION</version>"
               continue
             }
-            if ($line -match '^        <app\.version>1\.0\.0</app\.version>$') {
+            if ($line -match '^        <app\.version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?</app\.version>$') {
               $lines[$i] = "        <app.version>$VERSION</app.version>"
               continue
             }
@@ -367,7 +367,7 @@ jobs:
           cp pom.xml pom.xml.backup
           awk -v version="$VERSION" '
           {
-              if ($0 ~ /^    <version>1\.0\.0<\/version>$/) {
+              if ($0 ~ /^    <version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/version>$/) {
                   print "    <version>" version "</version>"
               } else {
                   print $0
@@ -376,7 +376,7 @@ jobs:
 
           awk -v version="$VERSION" '
           {
-              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>$/) {
+              if ($0 ~ /^        <app\.version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/app\.version>$/) {
                   print "        <app.version>" version "</app.version>"
               } else {
                   print $0
@@ -453,7 +453,7 @@ jobs:
           cp pom.xml pom.xml.backup
           awk -v version="$VERSION" '
           {
-              if ($0 ~ /^    <version>1\.0\.0<\/version>$/) {
+              if ($0 ~ /^    <version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/version>$/) {
                   print "    <version>" version "</version>"
               } else {
                   print $0
@@ -462,7 +462,7 @@ jobs:
 
           awk -v version="$VERSION" '
           {
-              if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>$/) {
+              if ($0 ~ /^        <app\.version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/app\.version>$/) {
                   print "        <app.version>" version "</app.version>"
               } else {
                   print $0
@@ -579,9 +579,9 @@ jobs:
           VERSION="${{ needs.prepare-release.outputs.version }}"
           cp pom.xml pom.xml.backup
           awk -v version="$VERSION" '
-          { if ($0 ~ /^    <version>1\.0\.0<\/version>$/) { print "    <version>" version "</version>" } else { print $0 } }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+          { if ($0 ~ /^    <version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/version>$/) { print "    <version>" version "</version>" } else { print $0 } }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
           awk -v version="$VERSION" '
-          { if ($0 ~ /^        <app\.version>1\.0\.0<\/app\.version>$/) { print "        <app.version>" version "</app.version>" } else { print $0 } }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
+          { if ($0 ~ /^        <app\.version>[0-9]+\.[0-9]+\.[0-9]+(-[^<]+)?<\/app\.version>$/) { print "        <app.version>" version "</app.version>" } else { print $0 } }' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml
           awk -v version="$VERSION" '
           BEGIN { in_plugin = 0; in_exec_plugin = 0; in_arguments = 0 }
           {

@@ -69,7 +69,7 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
 1. Download the latest release from [Releases](../../releases)
 2. Run the application:
    ```bash
-   java -jar pdf-utilities-app-1.0.0.jar
+   java -jar pdf-utilities-app-1.0.1.jar
    ```
 
 ### Option 2: Build from Source
@@ -94,7 +94,7 @@ A comprehensive Java-based desktop application for PDF manipulation and manageme
    mvn javafx:run
 
    # Or using the JAR
-   java -jar target/pdf-utilities-app-1.0.0.jar
+   java -jar target/pdf-utilities-app-1.0.1.jar
 
    # On Windows, use the provided batch file
    run.bat
@@ -200,7 +200,7 @@ mvn test
 # Create executable JAR
 mvn clean package
 
-# The JAR will be available at: target/pdf-utilities-app-1.0.0.jar
+# The JAR will be available at: target/pdf-utilities-app-1.0.1.jar
 ```
 
 ## 📊 Performance Characteristics
@@ -228,7 +228,7 @@ mvn clean package
 
 **"Out of memory" errors with large PDFs**
 
-- Increase heap size: `java -Xmx2g -jar pdf-utilities-app-1.0.0.jar`
+- Increase heap size: `java -Xmx2g -jar pdf-utilities-app-1.0.1.jar`
 
 **"Permission denied" on macOS/Linux**
 
@@ -239,7 +239,7 @@ mvn clean package
 Enable detailed logging:
 
 ```bash
-java -Dorg.slf4j.simpleLogger.defaultLogLevel=debug -jar pdf-utilities-app-1.0.0.jar
+java -Dorg.slf4j.simpleLogger.defaultLogLevel=debug -jar pdf-utilities-app-1.0.1.jar
 ```
 
 ## 🤝 Contributing
