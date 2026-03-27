@@ -337,7 +337,7 @@ jobs:
         with:
           name: PDF-Utilities-Windows-${{ needs.prepare-release.outputs.version }}
           path: target/installers/*
-          retention-days: 30
+          retention-days: 2
 
   build-macos:
     needs: prepare-release
@@ -414,7 +414,7 @@ jobs:
         with:
           name: PDF-Utilities-macOS-${{ needs.prepare-release.outputs.version }}
           path: target/installers/*
-          retention-days: 30
+          retention-days: 1
 
   build-linux:
     needs: prepare-release
@@ -544,7 +544,7 @@ jobs:
         with:
           name: PDF-Utilities-Linux-${{ needs.prepare-release.outputs.version }}
           path: target/installers/*
-          retention-days: 30
+          retention-days: 1
 
   build-rpm:
     needs: prepare-release
@@ -610,7 +610,7 @@ jobs:
         with:
           name: PDF-Utilities-RPM-${{ needs.prepare-release.outputs.version }}
           path: target/installers/fedora/*.rpm
-          retention-days: 30
+          retention-days: 1
 
   # Job 3: Create GitHub Release
   create-release:
